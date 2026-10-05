@@ -229,13 +229,13 @@ All tables have `id uuid primary key default gen_random_uuid()` unless noted, `c
 ### 5.1 Tables
 **People**
 - `allowed_emails(email text pk)` — no client access at all.
-- `profiles(id uuid pk → auth.users, display_name, avatar_path, bio, star_color, subjects text[], timezone default 'Asia/Manila', xp int default 0, current_streak int, longest_streak int, last_active_date date, preferences jsonb, onboarded_at)` — `preferences` holds theme, notification toggles, study and AI preferences, privacy toggles (validated by a Zod schema in the app, defaults merged on read).
+- `profiles(id uuid pk → auth.users, display_name, avatar_path, bio, star_color, timezone default 'Asia/Manila', xp int default 0, current_streak int, longest_streak int, last_active_date date, preferences jsonb, onboarded_at)` — `preferences` holds theme, notification toggles, study and AI preferences, privacy toggles (validated by a Zod schema in the app, defaults merged on read).
 
 **Content**
 - `subjects(owner_id, name, color, icon)`
 - `folders(owner_id, name, subject_id?)`
 - `notes(owner_id, subject_id?, folder_id?, title, content jsonb, content_text text, is_pinned, is_favorite, is_shared, search tsvector generated from title+content_text)` + GIN index.
-- `note_attachments(note_id, owner_id, storage_path, file_name, mime_type, size_bytes)`
+- `note_attachments(note_id, owner_id, kind in (file, image), storage_path, file_name, mime_type, size_bytes)` — every object in `note-files` has a row (images too), which the storage read policy relies on
 - `decks(owner_id, subject_id?, title, description, tags text[], is_shared, source_note_id?)`
 - `flashcards(deck_id, owner_id, type in (qa, mcq, tf), front, back, options jsonb?, correct_answer?, front_image_path?, back_image_path?, topic?, difficulty in (easy, medium, hard)?, position)`
 - `quizzes(owner_id, subject_id?, title, description, source in (manual, ai, deck), source_note_ids uuid[], source_deck_id?, time_limit_seconds?, is_shared)`
@@ -243,8 +243,8 @@ All tables have `id uuid primary key default gen_random_uuid()` unless noted, `c
 
 **Learning**
 - `flashcard_progress(user_id, card_id, ease numeric default 2.5, interval_minutes int, repetitions int, due_at, last_reviewed_at, correct_count, incorrect_count, review_count, state in (new, learning, reviewing, mastered); pk(user_id, card_id))`
-- `review_events(user_id, card_id, deck_id, grade smallint 0–3, was_correct bool?, session_id?, reviewed_at)`
-- `quiz_attempts(quiz_id?, user_id, mode in (practice, timed, random, subject, deck), started_at, finished_at, duration_seconds, score, total, accuracy numeric, answers jsonb, topic_breakdown jsonb, ai_analysis jsonb?, session_id?)` — `quiz_id` is null for random/subject attempts; `answers` stores the question snapshot so results survive question edits.
+- `review_events(user_id, card_id, deck_id, grade smallint 0–3, was_correct bool?, session_key uuid?, reviewed_at)` — `session_key` groups one review run (client-generated) for the flashcard-session XP
+- `quiz_attempts(quiz_id?, user_id, title, subject_id?, mode in (practice, timed, random, subject, deck), started_at, finished_at, duration_seconds, score, total, accuracy numeric, answers jsonb, topic_breakdown jsonb, ai_analysis jsonb?, session_id?)` — `quiz_id` is null for random/subject attempts; `answers` stores the question snapshot so results survive question edits.
 - `study_sessions(user_id, subject_id?, task_id?, mode in (pomodoro, custom, stopwatch), started_at, ended_at, focus_seconds, cards_studied, questions_answered, correct_answers, xp_earned, together bool default false, room_id?)`
 
 **Planning**
@@ -387,7 +387,7 @@ interface AIProvider {
 | `generateStudyGuide()` | study_guide | Markdown (sections: key ideas, definitions, examples, self-check) |
 | `generateFlashcards()` | flashcards | `{ cards: [{ question, answer, difficulty, topic }] }` (5–30, default 12) |
 | `generateQuiz()` | quiz | `{ title, questions: [{ type, question, options, correctAnswer, explanation, difficulty, topic }] }` (5–25, default 10) |
-| `generatePracticeQuestions()` | practice | `{ questions: [{ question, answer, hint, explanation, topic }] }` — rendered as reveal cards with *Turn into quiz* |
+| `generatePracticeQuestions()` | practice | `{ questions: [{ question, answer, hint, explanation, topic }] }` — rendered as reveal cards with *Save as flashcards* |
 | `generateStudyPlan()` | study_plan | `{ summary, sessions: [{ date, startTime?, topic, durationMinutes, activity, priority, notes? }] }` |
 | `analyzeQuizResults()` | quiz_analysis | `{ weakTopics: [{topic, reason}], strongTopics: [{topic, reason}], commonMistakes: [], reviewTopics: [], suggestedFlashcards: [{question, answer, topic}], nextSession: { topic, durationMinutes, activity, why }, encouragement }` |
 | `generateRecommendations()` | recommendations | `{ items: [{ title, reason, action: { type: 'review_deck'|'take_quiz'|'open_note'|'plan_exam'|'start_session', targetId? } }] }` — input is a compact stats summary (due cards, weak topics, upcoming exams) |
@@ -409,7 +409,7 @@ type AIResult<T> =
 
 ## 8. Non-functional
 
-- **Performance:** route-level lazy loading; TanStack Query caching (stale time 30 s, longer for static lists), optimistic updates for pin/favourite/complete/reactions/grading; debounced search (300 ms); paginated lists (notes, messages: 50 per page); selected columns only; indexes on all foreign keys and common filters (`owner_id, updated_at`, `user_id, due_at`, `room_id, created_at`); starfield canvas capped at 60 fps and paused when hidden.
+- **Performance:** route-level lazy loading; TanStack Query caching (stale time 30 s, longer for static lists), optimistic updates for pin/favourite/complete/reactions/grading; debounced search (300 ms); capped lists (notes 500 per view; messages paginated 50 per page); selected columns only; indexes on all foreign keys and common filters (`owner_id, updated_at`, `user_id, due_at`, `room_id, created_at`); starfield canvas capped at 60 fps and paused when hidden.
 - **Security:** RLS everywhere; no secrets in client code or the repo (`.env*` git-ignored, `.env.example` committed); user content rendered without raw HTML (TipTap JSON, safe Markdown, text nodes); uploaded file types/sizes restricted; Edge Function validates auth and input; CORS restricted; security advisor clean.
 - **Accessibility:** WCAG AA contrast in both themes, visible focus rings, keyboard flows (flashcards Space/1–4, quiz 1–6/Enter, palette Ctrl+K), labelled controls, `aria-live` for timer phase changes and toasts, reduced-motion support.
 - **Resilience:** offline banner; Supabase errors mapped to friendly toasts with retry; autosave retries; study session state survives refresh.
