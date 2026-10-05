@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B1026" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>StudySpace</title>
+    <script>
+      try {
+        var p = JSON.parse(localStorage.getItem('ss.theme') || '"system"');
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = p === 'system' ? (dark ? 'night' : 'daybreak') : p;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
