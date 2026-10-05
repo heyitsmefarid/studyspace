@@ -20,6 +20,9 @@
   ::selection { background: var(--primary-soft); }
 }
 
+/* focus mode (study/review) hides mobile chrome */
+body[data-focus="true"] [data-mobile-chrome] { display: none; }
+
 @media (prefers-reduced-motion: no-preference) {
   .animate-twinkle { animation: twinkle 3.2s ease-in-out infinite; }
   .animate-rise { animation: rise 0.28s cubic-bezier(.2,.8,.2,1) both; }

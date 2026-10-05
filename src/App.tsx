@@ -1,3 +1,10 @@
+import { RouterProvider } from 'react-router';
+import { Providers } from './app/providers';
+import { router } from './app/router';
+import { supabaseConfigured } from './lib/supabase';
+import { SetupNeeded } from './app/SetupNeeded';
+
 export default function App() {
-  return <main className="p-6 font-display text-3xl">StudySpace ✦</main>;
+  if (!supabaseConfigured) return <SetupNeeded />;
+  return <Providers><RouterProvider router={router} /></Providers>;
 }
