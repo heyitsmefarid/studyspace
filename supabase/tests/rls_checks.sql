@@ -107,5 +107,32 @@ begin
   perform private.touch_streak(b);
   assert (select current_streak from public.profiles where id = b) = 5, 'streak did not continue from yesterday';
 
+  -- integrity: XP sources must be plausible and internals are not callable by users
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  begin
+    insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
+    values (a, 'custom', now() - interval '10 minutes', now(), 36000);
+    assert false, 'session claimed more focus than wall-clock time';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.quiz_attempts (user_id, mode, started_at, finished_at, score, total, answers)
+    values (a, 'practice', now(), now(), 5, 5, '[{"correct":false},{"correct":false},{"correct":false},{"correct":false},{"correct":false}]');
+    assert false, 'quiz attempt score did not match its answers';
+  exception when check_violation then null;
+  end;
+  begin
+    perform private.award_xp(a, 'achievement', 'forged', 9999);
+    assert false, 'user could call award_xp directly';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.profiles set timezone = 'Mars/Olympus' where id = a;
+    assert false, 'invalid timezone accepted';
+  exception when check_violation then null;
+  end;
+  execute 'reset role';
+
   raise exception 'RLS CHECKS PASSED';
 end $$;
