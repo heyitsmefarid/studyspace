@@ -22,17 +22,17 @@ export function friendlyMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-interface Res<T> { data: T | null; error: Errorish | null }
+interface Res { data: unknown; error: Errorish | null }
 
-export function unwrap<T>(res: Res<T>): T {
+export function unwrap<R extends Res>(res: R): NonNullable<R['data']> {
   if (res.error) throw new AppError(friendlyMessage(res.error), res.error.code, res.error);
-  if (res.data === null) throw new AppError('Not found.', 'PGRST116');
-  return res.data;
+  if (res.data === null || res.data === undefined) throw new AppError('Not found.', 'PGRST116');
+  return res.data as NonNullable<R['data']>;
 }
 
-export function unwrapMaybe<T>(res: Res<T>): T | null {
+export function unwrapMaybe<R extends Res>(res: R): R['data'] | null {
   if (res.error) throw new AppError(friendlyMessage(res.error), res.error.code, res.error);
-  return res.data;
+  return res.data ?? null;
 }
 
 export function assertOk(res: { error: Errorish | null }): void {
