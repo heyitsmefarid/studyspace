@@ -1,0 +1,81 @@
+/* Daybreak (light) is the :root default; Night overrides. Hex-only values for text-bearing tokens (tested). */
+:root {
+  --bg: #F6F3FB;
+  --bg-grad: #FFF7EE;
+  --surface: #FFFFFF;
+  --surface-2: #F1EEF8;
+  --raised: #FFFFFF;
+  --line: rgb(27 33 80 / 0.10);
+  --line-strong: rgb(27 33 80 / 0.20);
+  --ink: #1B2150;
+  --ink-muted: #4A5180;
+  --ink-faint: #5F658C;
+  --primary: #5443C9;
+  --primary-ink: #FFFFFF;
+  --primary-soft: rgb(84 67 201 / 0.10);
+  --gold: #8A5A0B;
+  --gold-soft: rgb(245 199 107 / 0.25);
+  --teal: #0B6F5F;
+  --teal-soft: rgb(11 111 95 / 0.10);
+  --coral: #B23B30;
+  --coral-soft: rgb(178 59 48 / 0.10);
+  --star-me: #2B6CB0;
+  --star-partner: #B83A78;
+  --sky-star: #1B2150;
+  --glow: 0 1px 0 0 rgb(27 33 80 / 0.04), 0 10px 30px -18px rgb(27 33 80 / 0.35);
+  color-scheme: light;
+}
+
+[data-theme="night"] {
+  --bg: #0B1026;
+  --bg-grad: #151C44;
+  --surface: #11173A;
+  --surface-2: #182050;
+  --raised: #1B2350;
+  --line: rgb(232 236 255 / 0.08);
+  --line-strong: rgb(232 236 255 / 0.16);
+  --ink: #E8ECFF;
+  --ink-muted: #A9B1D6;
+  --ink-faint: #8790BA;
+  --primary: #A99CFF;
+  --primary-ink: #0B1026;
+  --primary-soft: rgb(169 156 255 / 0.14);
+  --gold: #F5C76B;
+  --gold-soft: rgb(245 199 107 / 0.14);
+  --teal: #5FE0C8;
+  --teal-soft: rgb(95 224 200 / 0.12);
+  --coral: #FF8A7A;
+  --coral-soft: rgb(255 138 122 / 0.12);
+  --star-me: #7CC4FF;
+  --star-partner: #FF9ECF;
+  --sky-star: #FFFFFF;
+  --glow: 0 0 0 1px rgb(232 236 255 / 0.06), 0 12px 40px -16px rgb(169 156 255 / 0.30);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-primary-soft: var(--primary-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-teal: var(--teal);
+  --color-teal-soft: var(--teal-soft);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-star-me: var(--star-me);
+  --color-star-partner: var(--star-partner);
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 1.25rem;
+  --shadow-glow: var(--glow);
+}
