@@ -90,5 +90,22 @@ begin
   end;
   execute 'reset role';
 
+  -- ── gamification (as A); server-side xp only
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, xp_earned)
+  values (a, 'pomodoro', now() - interval '30 minutes', now(), 1500, 9999);
+  execute 'reset role';
+  assert (select xp_earned from public.study_sessions where user_id = a) = 10, 'client-chosen xp_earned was kept';
+  assert (select current_streak from public.profiles where id = a) = 1, 'streak not started';
+  assert exists (select 1 from public.user_achievements where user_id = a and achievement_code = 'first_light'), 'first_light not unlocked';
+  assert (select xp from public.profiles where id = a) = 35, 'xp should be 10 (session) + 25 (first_light)';
+  perform private.award_xp(a, 'study_session', (select id::text from public.study_sessions where user_id = a));
+  assert (select xp from public.profiles where id = a) = 35, 'award_xp is not idempotent';
+  -- yesterday-active → streak continues; local-midnight logic uses profile timezone
+  update public.profiles set last_active_date = (now() at time zone 'Asia/Manila')::date - 1, current_streak = 4 where id = b;
+  perform private.touch_streak(b);
+  assert (select current_streak from public.profiles where id = b) = 5, 'streak did not continue from yesterday';
+
   raise exception 'RLS CHECKS PASSED';
 end $$;
