@@ -67,15 +67,19 @@ begin
 
   -- quiz attempts are graded by the server (0007): forged `correct` flags and unknown questions are not trusted
   insert into public.quizzes (owner_id, title) values (a, 'RLS quiz') returning id into qz;
-  insert into public.quiz_questions (quiz_id, type, question, options, correct_answer) values (qz, 'mcq', 'Q1?', '["A","B"]', 'A') returning id into q1;
+  insert into public.quiz_questions (quiz_id, type, question, options, correct_answer, topic) values (qz, 'mcq', 'Q1?', '["A","B"]', 'A', 'Cells') returning id into q1;
   insert into public.quiz_questions (quiz_id, type, question, options, correct_answer) values (qz, 'mcq', 'Q2?', '["A","B"]', 'A') returning id into q2;
-  insert into public.quiz_attempts (user_id, quiz_id, mode, started_at, finished_at, duration_seconds, score, total, answers)
+  insert into public.quiz_attempts (user_id, quiz_id, mode, started_at, finished_at, duration_seconds, score, total, answers, topic_breakdown)
   values (a, qz, 'practice', now() - interval '1 minute', now(), 60, 2, 2, jsonb_build_array(
     jsonb_build_object('questionId', q1, 'chosen', 'B', 'correct', true),
-    jsonb_build_object('questionId', q2, 'chosen', ' a ', 'correct', false)))
+    jsonb_build_object('questionId', q2, 'chosen', ' a ', 'correct', false)),
+    '{"Cells": {"correct": 9, "total": 9, "accuracy": 1}}')
   returning id into att;
   assert (select score from public.quiz_attempts where id = att) = 1, 'forged correct flags changed the score';
   assert (select (answers -> 1 ->> 'correct')::boolean from public.quiz_attempts where id = att), 'case/space variant not graded correct';
+  assert (select topic_breakdown from public.quiz_attempts where id = att)
+    = '{"Cells": {"correct": 0, "total": 1, "accuracy": 0}, "General": {"correct": 1, "total": 1, "accuracy": 1}}'::jsonb,
+    'topic_breakdown was not derived from the graded answers (0012)';
   begin
     insert into public.quiz_attempts (user_id, mode, started_at, finished_at, duration_seconds, total, answers)
     values (a, 'practice', now() - interval '1 minute', now(), 60, 1, jsonb_build_array(jsonb_build_object('questionId', gen_random_uuid(), 'chosen', 'A')));
@@ -92,6 +96,11 @@ begin
     update public.quiz_attempts set score = 2 where id = att;
     assert false, 'client could change an attempt score';
   exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.flashcards set owner_id = b where id = c;
+    assert false, 'A handed a card to B (0012)';
+  exception when others then if sqlerrm like '%row-level security%' then null; else raise; end if;
   end;
   update public.quiz_attempts set ai_analysis = '{"encouragement":"ok"}' where id = att;
   get diagnostics cnt = row_count;                                          assert cnt = 1, 'member cannot save Nova analysis on own attempt';
@@ -110,9 +119,10 @@ begin
                 and tstzrange(started_at, ended_at, '[)') && tstzrange(t_end - interval '26 minutes', t_end, '[)')) loop
     t_end := t_end - interval '30 minutes';
   end loop;
-  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, xp_earned)
-  values (a, 'pomodoro', t_end - interval '25 minutes', t_end, 1500, 9999) returning id into sess;
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, xp_earned, together)
+  values (a, 'pomodoro', t_end - interval '25 minutes', t_end, 1500, 9999, true) returning id into sess;
   assert (select xp_earned from public.study_sessions where id = sess) = 10, 'client-chosen xp_earned was kept';
+  assert not (select together from public.study_sessions where id = sess), 'a solo session claimed together (0012)';
   begin
     insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
     values (a, 'custom', t_end - interval '20 minutes', t_end - interval '5 minutes', 600);
