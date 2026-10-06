@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SubjectPicker } from '@/features/subjects/SubjectPicker';
+import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { useInsertQuizWithQuestions, useQuiz, useSaveQuestions, useUpdateQuiz, type Quiz } from './api';
 import { validateQuestion, type QuestionForm } from './questionForm';
 import type { QuestionSnapshot } from './scoring';
@@ -85,7 +86,7 @@ function Editor({ quiz, initial }: { quiz: Quiz; initial: QuestionSnapshot[] }) 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Link to="/quizzes" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="size-4" /> Quizzes</Link>
         <span className="flex-1" />
-        <span data-slot="ask-nova" />
+        <AskNovaButton context={{ type: 'quiz', id: quiz.id }} label="Ask Nova" size="sm" variant="ghost" />
         <Link to={`/quizzes/${quiz.id}/take?mode=practice`} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-line bg-surface-2 px-3 text-sm font-semibold"><Play className="size-4" /> Practice</Link>
         <Button onClick={save} loading={saveQuestions.isPending || updateQuiz.isPending}>Save quiz</Button>
       </div>

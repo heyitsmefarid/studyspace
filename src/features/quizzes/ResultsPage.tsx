@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ProgressRing } from '@/components/ui/Progress';
 import { useAttempt } from './api';
 import { classifyTopics, type AnswerRecord, type TopicStat } from './scoring';
+import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { ResultsSky } from './ResultsSky';
 
 function ReviewSuggestions({ topics }: { topics: string[] }) {
@@ -104,6 +105,9 @@ export default function ResultsPage() {
       <div className="flex flex-wrap gap-2">
         <Link to={retake} className="inline-flex h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-ink">Retake</Link>
         <Link to="/quizzes" className="inline-flex h-11 items-center rounded-xl border border-line bg-surface-2 px-4 text-sm font-semibold">Back to quizzes</Link>
+        {answers.some((r) => !r.correct) && (
+          <AskNovaButton context={{ type: 'attempt', id: a.id }} prompt="Help me understand the questions I got wrong." label="Ask Nova about my mistakes" />
+        )}
       </div>
     </div>
   );

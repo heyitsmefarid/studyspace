@@ -13,6 +13,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useHotkey } from '@/app/useHotkey';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SubjectPicker } from '@/features/subjects/SubjectPicker';
+import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { useCopyNote, useDeleteNote, useNote, useUpdateNote, type Note } from './api';
 import { useFolders } from './foldersApi';
 import { useAutosave } from './useAutosave';
@@ -58,6 +59,7 @@ function EditorBody({ note }: { note: Note }) {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Link to="/notes" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="size-4" /> Notes</Link>
           <span className="flex-1" />
+          <AskNovaButton context={{ type: 'note', id: note.id }} label="Ask Nova" size="sm" variant="ghost" />
           {editable && (
             <span role="status" className={cn('text-xs', autosave.status === 'error' ? 'text-coral' : 'text-ink-faint')}>
               {STATUS[autosave.status]}

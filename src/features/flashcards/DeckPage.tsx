@@ -13,6 +13,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { SubjectDot } from '@/features/subjects/SubjectDot';
 import { useCopyDeck, useDeck, useDeleteCard, useDeleteDeck, useMoveCard, useMyProgress, useUpdateDeck, type Flashcard } from './api';
+import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { DeckConstellation } from './DeckConstellation';
 import { DeckDialog } from './DeckDialog';
 import { CardEditor } from './CardEditor';
@@ -101,7 +102,7 @@ export default function DeckPage() {
           {cards.length >= 4
             ? <Link to={`/quiz/take?mode=deck&deck=${deck.id}`} className="inline-flex h-11 items-center rounded-xl border border-line bg-surface-2 px-4 text-sm font-semibold">Quiz me</Link>
             : <span className="inline-flex h-11 items-center px-2 text-xs text-ink-faint">Add 4+ cards to quiz yourself</span>}
-          <span data-slot="ask-nova" />
+          {cards.length > 0 && <AskNovaButton context={{ type: 'deck', id: deck.id }} label="Ask Nova" />}
         </div>
       </Card>
 
