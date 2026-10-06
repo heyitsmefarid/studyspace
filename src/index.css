@@ -15,7 +15,7 @@
     background-attachment: fixed;
   }
   h1, h2, h3, .font-display { font-family: var(--font-display); font-variation-settings: "SOFT" 80, "WONK" 0; letter-spacing: -0.01em; }
-  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 0.5rem; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 0.5rem; box-shadow: 0 0 0 5px var(--primary-soft); transition: box-shadow var(--dur-hover) var(--ease-soft); }
   .tabular { font-variant-numeric: tabular-nums; }
   ::selection { background: var(--primary-soft); }
 }
@@ -93,4 +93,108 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
     60% { opacity: 1; }
     100% { transform: none; opacity: 1; }
   }
+}
+
+/* ───────────── UI polish: motion vocabulary (spec 2026-10-06-studyspace-ui-polish-design) */
+@theme {
+  --ease-soft: cubic-bezier(.2, .8, .2, 1);
+  --ease-float: cubic-bezier(.34, 1.25, .64, 1);
+  --animate-page-in: page-in 420ms var(--ease-soft) both;
+  --animate-rise-in: rise-in 320ms var(--ease-soft) both;
+  --animate-pop-in: pop-in 240ms var(--ease-float) both;
+  --animate-pop-out: pop-out 160ms var(--ease-soft) both;
+  --animate-fade-in: fade-in 200ms var(--ease-soft) both;
+  --animate-fade-out: fade-out 160ms var(--ease-soft) both;
+  --animate-sheet-up: sheet-up 320ms var(--ease-soft) both;
+  --animate-sheet-down: sheet-down 220ms var(--ease-soft) both;
+  --animate-slide-in-right: slide-in-right 320ms var(--ease-soft) both;
+  --animate-slide-out-right: slide-out-right 220ms var(--ease-soft) both;
+  --animate-slide-in-left: slide-in-left 320ms var(--ease-soft) both;
+  --animate-slide-out-left: slide-out-left 220ms var(--ease-soft) both;
+  --animate-shake: shake 360ms var(--ease-soft) both;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-grow-x: grow-x 600ms var(--ease-soft) both;
+  --animate-draw-line: draw-line 1.2s var(--ease-soft) both;
+  --animate-pulse-once: pulse-once 1.4s var(--ease-soft) 1 both;
+  --animate-orbit: orbit-spin 1.2s var(--ease-soft) 1;
+  --animate-shimmer-text: shimmer-text 4s linear infinite;
+}
+
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.97); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-down { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes slide-in-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes slide-out-right { from { transform: none; } to { transform: translateX(100%); } }
+@keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-out-left { from { transform: none; } to { transform: translateX(-100%); } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-2px); } 40% { transform: translateX(2px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
+@keyframes float { 0%, 100% { transform: none; } 50% { transform: translateY(-3px); } }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes grow-x { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes draw-line { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes pulse-once { 0% { box-shadow: 0 0 0 0 var(--gold-soft); } 60% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes shimmer-text { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Lists ease in one after another; children past the 12th share the last delay. */
+.stagger > * { --i: 11; animation: rise-in var(--dur-enter) var(--ease-soft) both; animation-delay: calc(var(--i) * var(--stagger-step, 40ms)); }
+.stagger > :nth-child(1) { --i: 0; }
+.stagger > :nth-child(2) { --i: 1; }
+.stagger > :nth-child(3) { --i: 2; }
+.stagger > :nth-child(4) { --i: 3; }
+.stagger > :nth-child(5) { --i: 4; }
+.stagger > :nth-child(6) { --i: 5; }
+.stagger > :nth-child(7) { --i: 6; }
+.stagger > :nth-child(8) { --i: 7; }
+.stagger > :nth-child(9) { --i: 8; }
+.stagger > :nth-child(10) { --i: 9; }
+.stagger > :nth-child(11) { --i: 10; }
+
+/* Starlit sheen on cards + pointer-following glow (pointerGlow.ts sets --mx/--my). */
+.card-sheen { position: relative; isolation: isolate; }
+.card-sheen::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(120% 70% at 0% 0%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 60%);
+}
+[data-glow]::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0;
+  transition: opacity var(--dur-hover) var(--ease-soft);
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%);
+}
+@media (hover: hover) { [data-glow]:hover::after { opacity: 1; } }
+
+/* Loading shimmer: a light sweep (transform only). */
+.skeleton-shimmer { position: relative; overflow: hidden; }
+.skeleton-shimmer::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--raised) 75%, transparent), transparent);
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Checkbox whose tick pops in (planner, someday, today). */
+.check-pop {
+  appearance: none; display: inline-grid; place-content: center; border: 1.5px solid currentColor; border-radius: 4px; cursor: pointer;
+  transition: background-color var(--dur-hover) var(--ease-soft), border-color var(--dur-hover) var(--ease-soft);
+}
+.check-pop::before {
+  content: ""; width: 0.62em; height: 0.62em; transform: scale(0); background: var(--primary-ink);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transition: transform var(--dur-hover) var(--ease-float);
+}
+.check-pop:checked { background: var(--primary); border-color: var(--primary); }
+.check-pop:checked::before { transform: scale(1); }
+
+/* Gradient text that shimmers slowly (Supernova banner). */
+.text-shimmer {
+  background: linear-gradient(90deg, var(--gold), var(--ink), var(--gold)); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

@@ -11,6 +11,7 @@
   --ink-muted: #4A5180;
   --ink-faint: #5F658C;
   --primary: #5443C9;
+  --primary-2: #6A4BD6;
   --primary-ink: #FFFFFF;
   --primary-soft: rgb(84 67 201 / 0.10);
   --gold: #8A5A0B;
@@ -25,6 +26,12 @@
   --chart-1: #5443C9;
   --chart-2: #008A73;
   --glow: 0 1px 0 0 rgb(27 33 80 / 0.04), 0 10px 30px -18px rgb(27 33 80 / 0.35);
+  --ease-soft: cubic-bezier(.2, .8, .2, 1);
+  --ease-float: cubic-bezier(.34, 1.25, .64, 1);
+  --dur-press: 120ms;
+  --dur-hover: 200ms;
+  --dur-enter: 320ms;
+  --dur-page: 420ms;
   color-scheme: light;
 }
 
@@ -40,6 +47,7 @@
   --ink-muted: #A9B1D6;
   --ink-faint: #8790BA;
   --primary: #A99CFF;
+  --primary-2: #8B7BFF;
   --primary-ink: #0B1026;
   --primary-soft: rgb(169 156 255 / 0.14);
   --gold: #F5C76B;
@@ -68,6 +76,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-primary: var(--primary);
+  --color-primary-2: var(--primary-2);
   --color-primary-ink: var(--primary-ink);
   --color-primary-soft: var(--primary-soft);
   --color-gold: var(--gold);

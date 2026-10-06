@@ -45,3 +45,15 @@ describe.each([
     expect(ratio(t[fg]!, t[bg]!)).toBeGreaterThanOrEqual(3);
   });
 });
+
+// UI polish: the primary button gradient ends on --primary-2; its label stays readable on both stops.
+describe.each([
+  ['daybreak', ':root'],
+  ['night', '[data-theme="night"]'],
+])('%s gradient tokens', (_name, selector) => {
+  const t = block(selector);
+  it.each(['primary', 'primary-2'])('primary-ink on %s ≥ 4.5:1', (bg) => {
+    expect(t[bg], `${bg} missing`).toBeDefined();
+    expect(ratio(t['primary-ink']!, t[bg]!)).toBeGreaterThanOrEqual(4.5);
+  });
+});
