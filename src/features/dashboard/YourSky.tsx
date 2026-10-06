@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { format, startOfDay, subDays } from 'date-fns';
 import { BookOpen } from 'lucide-react';
 import { formatDuration, greetingFor } from '@/lib/dates';
+import { useCountUp } from '@/lib/countUp';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Comet } from '@/components/sky/Comet';
 import { RankBadge } from '@/components/sky/RankBadge';
@@ -24,6 +25,7 @@ export function YourSky() {
   const decks = useDecks('mine');
   const stats = useDeckStats();
   const focus = useTotalFocusSeconds(user?.id);
+  const shownFocus = useCountUp(focus, 1100);
 
   const skySubjects = useMemo(() => {
     const mastery = subjectMastery(decks.data ?? [], stats.data ?? new Map());
@@ -38,8 +40,8 @@ export function YourSky() {
   return (
     <section aria-label="Your sky" className="overflow-hidden rounded-3xl border border-line bg-surface">
       <div className="relative">
-        <StarField sessions={list} subjects={skySubjects} meColor={profile.star_color} ariaLabel="Your sky" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-surface/90 via-surface/40 to-transparent p-5 pb-10">
+        <StarField sessions={list} subjects={skySubjects} meColor={profile.star_color} ariaLabel="Your sky" reveal />
+        <div className="pointer-events-none absolute inset-x-0 top-0 animate-rise-in bg-gradient-to-b from-surface/90 via-surface/40 to-transparent p-5 pb-10">
           <h1 className="font-display text-3xl leading-tight">{greetingFor(now)}, {profile.display_name}</h1>
           <p className="text-sm text-ink-muted">{format(now, 'EEEE, MMMM d')}</p>
         </div>
@@ -54,7 +56,7 @@ export function YourSky() {
       </div>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line px-5 py-4">
         <Comet streak={streak} size="sm" />
-        <p className="text-sm"><span className="text-ink-muted">Total focus</span> <strong className="tabular">{formatDuration(focus)}</strong></p>
+        <p className="text-sm"><span className="text-ink-muted">Total focus</span> <strong className="tabular">{formatDuration(shownFocus)}</strong></p>
         <div className="w-36"><RankBadge xp={profile.xp} compact /></div>
         <span className="flex-1" />
         <Link to="/study" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-ink shadow-glow">

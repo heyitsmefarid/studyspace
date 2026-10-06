@@ -219,3 +219,6 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 
 @keyframes step-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 @keyframes step-in-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: no-preference) { .comet-tail { animation: comet-shimmer 3.2s ease-in-out infinite; } }
+@keyframes comet-shimmer { 0%, 100% { opacity: .8; } 50% { opacity: 1; } }

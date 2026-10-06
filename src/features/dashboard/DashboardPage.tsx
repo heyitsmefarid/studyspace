@@ -18,7 +18,7 @@ const Slot = ({ span, children }: { span: string; children: ReactNode }) => (
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-12">
+    <div className="stagger flex flex-col gap-4 [--stagger-step:50ms] lg:grid lg:grid-cols-12">
       <Slot span="lg:col-span-12"><YourSky /></Slot>
       <Slot span="lg:col-span-12"><QuickActions /></Slot>
       <Slot span="lg:col-span-7"><TodayCard /></Slot>

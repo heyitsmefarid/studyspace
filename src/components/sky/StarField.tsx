@@ -3,6 +3,7 @@ import { cn } from '@/lib/cn';
 import { mulberry32 } from '@/lib/random';
 import { hashString } from '@/features/flashcards/constellation';
 import { layoutSky, type SkySession, type SkyStar, type SkySubject } from '@/features/dashboard/sky';
+import { revealAlpha } from './reveal';
 
 const HIT = 14;
 
@@ -17,9 +18,11 @@ function rgba(color: string, alpha: number): string {
  * Responsive canvas sky: measures its width, lays the sessions out with `layoutSky`, and draws dust, constellation
  * lines and glowing stars. Recent stars twinkle (~30 fps) only when motion is allowed; otherwise it draws once.
  */
-export function StarField({ sessions, subjects, meColor, height, dust = true, ariaLabel, className, maxStars }: {
+export function StarField({ sessions, subjects, meColor, height, dust = true, ariaLabel, className, maxStars, reveal = false }: {
   sessions: SkySession[]; subjects: SkySubject[]; meColor: string; height?: number; dust?: boolean; ariaLabel: string;
   className?: string; maxStars?: number;
+  /** Draw the stars in one after another on first paint (~800 ms). */
+  reveal?: boolean;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -27,6 +30,7 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
   const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const [themeTick, setThemeTick] = useState(0);
   const [now] = useState(() => new Date());
+  const revealed = useRef(false);
 
   useEffect(() => {
     const el = wrap.current;
@@ -68,7 +72,15 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
     const byId = new Map(sky.stars.map((s) => [s.id, s]));
     const phase = new Map(sky.stars.map((s) => [s.id, (hashString(s.id) % 1000) / 100]));
 
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+    // Only the first paint draws in; resizes and theme changes redraw instantly.
+    const revealMs = reveal && motion && !revealed.current && sky.stars.length > 0 ? 800 : 0;
+    if (sky.stars.length > 0) revealed.current = true;
+    const t0 = performance.now();
+    const n = sky.stars.length;
+
     const draw = (t: number) => {
+      const elapsed = t - t0;
       ctx.clearRect(0, 0, size.w, size.h);
       ctx.fillStyle = dustColor;
       for (const d of dustPts) {
@@ -79,12 +91,12 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
       for (const l of sky.lines) {
         const a = byId.get(l.from), b = byId.get(l.to);
         if (!a || !b) continue;
-        ctx.globalAlpha = l.opacity;
+        ctx.globalAlpha = l.opacity * revealAlpha(n - 1, n, elapsed, revealMs);
         ctx.strokeStyle = l.color;
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       }
-      for (const s of sky.stars) {
-        ctx.globalAlpha = s.twinkle ? 0.6 + 0.4 * Math.sin(t / 600 + phase.get(s.id)!) : 1;
+      sky.stars.forEach((s, i) => {
+        ctx.globalAlpha = (s.twinkle ? 0.6 + 0.4 * Math.sin(t / 600 + phase.get(s.id)!) : 1) * revealAlpha(i, n, elapsed, revealMs);
         const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
         glow.addColorStop(0, rgba(s.color, 0.55));
         glow.addColorStop(1, rgba(s.color, 0));
@@ -92,21 +104,23 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
         ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = s.color;
         ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
-      }
+      });
       ctx.globalAlpha = 1;
     };
 
-    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+    const twinkles = sky.stars.some((s) => s.twinkle);
     let raf = 0;
     let last = -Infinity;
     const loop = (t: number) => {
       if (document.visibilityState === 'visible' && t - last >= 33) { last = t; draw(t); }
-      raf = requestAnimationFrame(loop);
+      // Keep looping while stars twinkle, or until the reveal has finished.
+      if (twinkles || t - t0 <= revealMs + 50) raf = requestAnimationFrame(loop);
+      else draw(t);
     };
-    if (motion && sky.stars.some((s) => s.twinkle)) raf = requestAnimationFrame(loop);
-    else draw(0);
+    if (motion && (twinkles || revealMs > 0)) raf = requestAnimationFrame(loop);
+    else draw(t0 + revealMs);
     return () => cancelAnimationFrame(raf);
-  }, [sky, size, dust, themeTick]);
+  }, [sky, size, dust, themeTick, reveal]);
 
   const locate = (e: PointerEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

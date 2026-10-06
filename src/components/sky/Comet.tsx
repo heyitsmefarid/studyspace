@@ -11,7 +11,7 @@ export function Comet({ streak, size = 'md' }: { streak: number; size?: 'sm' | '
             <stop offset="1" stopColor="var(--gold)" stopOpacity="0.85" />
           </linearGradient>
         </defs>
-        <path d={`M0 ${h / 2} Q ${tail * 0.6} ${h * 0.15} ${tail} ${h / 2 - h * 0.18} L ${tail} ${h / 2 + h * 0.18} Q ${tail * 0.6} ${h * 0.85} 0 ${h / 2} Z`} fill="url(#comet-tail)" />
+        <path d={`M0 ${h / 2} Q ${tail * 0.6} ${h * 0.15} ${tail} ${h / 2 - h * 0.18} L ${tail} ${h / 2 + h * 0.18} Q ${tail * 0.6} ${h * 0.85} 0 ${h / 2} Z`} fill="url(#comet-tail)" className="comet-tail" />
         <circle cx={tail + h / 2 - 2} cy={h / 2} r={h / 2 - 3} fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 6px var(--gold))' }} />
       </svg>
       <span className={size === 'sm' ? 'text-sm font-semibold' : 'font-display text-lg'}>

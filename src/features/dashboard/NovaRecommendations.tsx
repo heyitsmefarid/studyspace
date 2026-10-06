@@ -82,7 +82,7 @@ export function NovaRecommendations() {
         <>
           {task.status !== 'idle' && task.status !== 'success' && <AiStatus task={task} loadingLabel="Nova is looking at your week…" emptyTitle="Nothing to suggest yet" />}
           {!busy && items.length > 0 && (
-            <ul className="flex flex-col gap-2">
+            <ul className="stagger flex flex-col gap-2">
               {items.map((it) => (
                 <li key={`${it.title}-${it.action.type}`}>
                   <Link to={routeForAction(it.action)} className="group flex items-start gap-3 rounded-xl border border-line px-3 py-2.5 hover:border-primary">
