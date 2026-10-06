@@ -127,16 +127,15 @@ It's not applied to month or week calendar cells, which have too many children.
 
 There's one new token: `--primary-2`, the gradient end for primary buttons.
 
-- Light: a lighter violet. Dark: a deeper violet.
+- Light: `#6A4BD6` (gradient from `#5443C9`). Dark: `#8B7BFF` (gradient from `#A99CFF`).
 - `primary-ink` must stay ≥ 4.5:1 on both `--primary` and `--primary-2`. `tokens.test.ts` gains this check (RED first).
 
 ## Testing and verification
 
 - **Unit:**
   - the pointer-glow coordinate function;
-  - the stagger delay rule (a CSS-in-JS-free check isn't practical, so it's verified visually);
   - the tokens contrast test for `--primary-2`.
-- **Visual:** screenshots of public pages (`/login`, `/signup`) and a temporary component preview page (buttons, cards, dialog, sheet, menu, tabs, skeleton, empty state, page header, stagger grid). These cover phone and desktop in both themes, plus one pass with reduced motion emulated. The preview is deleted after checking.
+- **Visual:** screenshots of public pages (`/login`, `/signup`) and a temporary component preview page (buttons, cards, dialog, sheet, menu, tabs, skeleton, empty state, page header, stagger grid). These cover phone and desktop in both themes, plus one pass with reduced motion emulated. The staggered entrance timing is checked here, since a unit test isn't practical for it. The preview is deleted after checking.
 - **Gate:** typecheck, lint, tests, build and `check:bundle`. No new dependencies.
 
 ## Out of scope
