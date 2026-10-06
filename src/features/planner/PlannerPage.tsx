@@ -39,7 +39,7 @@ function Someday({ onOpen, onToggle }: { onOpen: (t: Task) => void; onToggle: (t
     <details className="mt-6 rounded-2xl border border-line bg-surface p-4" open={open > 0}>
       <summary className="cursor-pointer font-display text-lg">Someday <span className="text-sm text-ink-muted">· {open} open</span></summary>
       <p className="mt-1 text-xs text-ink-faint">Undated tasks. On a computer, drag one onto a day to schedule it.</p>
-      <ul className="mt-3 flex flex-col gap-1.5">
+      <ul className="stagger mt-3 flex flex-col gap-1.5 [--stagger-step:30ms]">
         {items.map(({ task, doneOn }) => (
           <li key={task.id}>
             <TaskChip occurrence={{ task, date: null, at: null }} done={Boolean(doneOn)} onToggle={(done) => onToggle(task, done, doneOn)} onOpen={() => onOpen(task)} />
@@ -117,6 +117,7 @@ export default function PlannerPage() {
         <h2 className="font-display text-xl" aria-live="polite">{titleFor(view, dateKey, range.days)}</h2>
       </div>
 
+      <div key={`${view}:${dateKey}`} className="animate-fade-in">
       {isPending ? (
         <Skeleton className={view === 'day' ? 'h-40' : 'h-96'} />
       ) : view === 'month' ? (
@@ -126,6 +127,7 @@ export default function PlannerPage() {
       ) : (
         <DayView {...common} now={startOfDay(now)} onAdd={() => addOn(dateKey)} />
       )}
+      </div>
 
       {view === 'day' && (
         <div className="mt-3 flex justify-between text-sm">

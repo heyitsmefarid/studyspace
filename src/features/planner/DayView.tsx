@@ -28,7 +28,7 @@ export function DayView({ days, byDate, completions, todayKey, now, onToggle, on
   }
 
   return (
-    <ol className="flex flex-col gap-2">
+    <ol className="stagger flex flex-col gap-2">
       {items.map((o) => {
         const k = occurrenceKey(o.task.id, o.date);
         const done = completions.has(k);

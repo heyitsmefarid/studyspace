@@ -130,7 +130,7 @@ export default function AiPlannerPage() {
       {(plans.data?.length ?? 0) > 0 && (
         <section className="mt-8">
           <h2 className="mb-3 font-display text-xl">Your plans</h2>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {plans.data!.map((p) => (
               <li key={p.id}>
                 <Card className="flex h-full flex-col gap-2 p-4">

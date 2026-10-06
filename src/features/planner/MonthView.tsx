@@ -49,7 +49,7 @@ export function MonthView({ days, month, byDate, completions, todayKey, onDayCli
                 aria-label={`${label}${items.length ? `, ${items.length} item${items.length > 1 ? 's' : ''}` : ''}`}
                 className={cn(
                   'relative z-10 grid size-7 place-items-center self-center rounded-full text-xs tabular hover:bg-surface-2 md:self-start',
-                  isToday && 'font-bold text-gold ring-2 ring-gold',
+                  isToday && 'animate-pulse-once font-bold text-gold ring-2 ring-gold',
                 )}
               >
                 {format(day, 'd')}

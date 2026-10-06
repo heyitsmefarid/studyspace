@@ -41,11 +41,19 @@ export function countdownLabel(at: Date, now: Date): string {
 /** Drop-target handlers for a calendar day that accepts dragged one-off tasks. */
 export function dayDropProps(date: string, onDrop: (taskId: string, date: string) => void) {
   return {
+    onDragEnter: (e: DragEvent) => {
+      if (e.dataTransfer.types.includes(TASK_DRAG_TYPE)) e.currentTarget.classList.add('drop-glow');
+    },
+    onDragLeave: (e: DragEvent) => {
+      // Moving between child chips fires dragleave on the cell; only clear when the pointer really leaves it.
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.classList.remove('drop-glow');
+    },
     onDragOver: (e: DragEvent) => {
       if (e.dataTransfer.types.includes(TASK_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
     },
     onDrop: (e: DragEvent) => {
       const id = e.dataTransfer.getData(TASK_DRAG_TYPE);
+      e.currentTarget.classList.remove('drop-glow');
       if (id) { e.preventDefault(); onDrop(id, date); }
     },
   };

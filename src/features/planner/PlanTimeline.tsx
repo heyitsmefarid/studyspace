@@ -22,7 +22,7 @@ export function PlanTimeline({ plan, examDate, onChange, readOnly }: {
     <div className="flex flex-col gap-4">
       {plan.summary && <p className="text-ink-muted">{plan.summary}</p>}
       {plan.trimmed > 0 && <p className="rounded-lg bg-gold-soft px-3 py-2 text-sm">{plan.trimmed} session{plan.trimmed === 1 ? ' was' : 's were'} dropped to fit your hours.</p>}
-      <ol className="flex flex-col gap-3">
+      <ol className="stagger flex flex-col gap-3 [--stagger-step:50ms]">
         {days.map(([date, sessions]) => (
           <li key={date}>
             <h3 className="sticky top-14 z-10 -mx-1 bg-bg/90 px-1 py-1 text-sm font-semibold backdrop-blur md:top-0">
@@ -56,7 +56,7 @@ export function PlanTimeline({ plan, examDate, onChange, readOnly }: {
           </li>
         ))}
         <li className="flex items-center gap-2 rounded-xl border border-gold bg-gold-soft px-3 py-2 font-semibold text-gold">
-          <span aria-hidden>★</span> Exam day — {format(parseISO(examDate), 'EEEE, MMM d')}
+          <span aria-hidden className="inline-block animate-twinkle">★</span> Exam day — {format(parseISO(examDate), 'EEEE, MMM d')}
         </li>
       </ol>
     </div>

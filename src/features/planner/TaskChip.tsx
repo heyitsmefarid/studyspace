@@ -24,9 +24,10 @@ export function TaskChip({ occurrence, done, onToggle, onOpen, compact }: {
   return (
     <div
       draggable={canDrag}
-      onDragStart={canDrag ? (e) => { e.dataTransfer.setData(TASK_DRAG_TYPE, t.id); e.dataTransfer.effectAllowed = 'move'; } : undefined}
+      onDragStart={canDrag ? (e) => { e.dataTransfer.setData(TASK_DRAG_TYPE, t.id); e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('chip-dragging'); } : undefined}
+      onDragEnd={canDrag ? (e) => e.currentTarget.classList.remove('chip-dragging') : undefined}
       className={cn(
-        'flex min-w-0 items-center rounded-lg', meta.className, done && 'opacity-60',
+        'flex min-w-0 animate-pop-in items-center rounded-lg transition-[opacity,translate,box-shadow] duration-200', meta.className, done && 'opacity-60',
         compact ? 'gap-1 px-1.5 py-0.5 text-xs' : 'gap-2 px-3 py-2 text-sm',
         canDrag && 'cursor-grab active:cursor-grabbing',
       )}
@@ -37,7 +38,7 @@ export function TaskChip({ occurrence, done, onToggle, onOpen, compact }: {
           checked={done}
           onChange={(e) => onToggle(e.target.checked)}
           aria-label={`Mark ${t.title} done`}
-          className={cn('shrink-0 accent-[var(--primary)]', compact ? 'size-3.5' : 'size-4')}
+          className={cn('check-pop shrink-0 text-ink-faint', compact ? 'size-3.5' : 'size-4')}
         />
       ) : (
         <span
@@ -56,7 +57,7 @@ export function TaskChip({ occurrence, done, onToggle, onOpen, compact }: {
       >
         {!compact && <Icon className="size-4 shrink-0" aria-hidden />}
         {time && <span className="shrink-0 tabular opacity-80">{time}</span>}
-        <span className={cn('truncate', done && 'line-through')}>{t.title}</span>
+        <span className={cn('truncate transition-opacity duration-300', done && 'line-through')}>{t.title}</span>
         {!compact && t.duration_minutes && t.kind === 'study_session' && <span className="shrink-0 text-xs opacity-70">{t.duration_minutes} min</span>}
       </button>
       {t.priority === 'high' && <span className="size-1.5 shrink-0 rounded-full bg-coral" role="img" aria-label="High priority" />}
