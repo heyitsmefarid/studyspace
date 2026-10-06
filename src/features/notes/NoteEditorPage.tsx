@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import type { JSONContent } from '@tiptap/react';
 import { ArrowLeft, Copy, MoreHorizontal, Pin, Share2, Star, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/Button';
 import { Menu } from '@/components/ui/Menu';
 import { Select } from '@/components/ui/Field';
@@ -20,11 +19,10 @@ import { useAutosave } from './useAutosave';
 import { NoteEditor, type NoteEditorHandle } from './editor/Editor';
 import { AttachmentList } from './AttachmentList';
 import { NoteAiPanel } from './NoteAiPanel';
-import type { SaveStatus } from './autosaver';
+import { SaveIndicator } from './SaveIndicator';
 
 interface NoteDraft { title: string; content: JSONContent; content_text: string }
 
-const STATUS: Record<SaveStatus, string> = { idle: '', pending: 'Unsaved…', saving: 'Saving…', saved: 'Saved ✓', error: "Couldn't save" };
 
 function EditorBody({ note }: { note: Note }) {
   const { user, partner } = useAuth();
@@ -62,12 +60,7 @@ function EditorBody({ note }: { note: Note }) {
           <Link to="/notes" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="size-4" /> Notes</Link>
           <span className="flex-1" />
           <Button variant="gold" size="sm" className="lg:hidden" onClick={() => setNovaOpen(true)}>✦ Nova</Button>
-          {editable && (
-            <span role="status" className={cn('text-xs', autosave.status === 'error' ? 'text-coral' : 'text-ink-faint')}>
-              {STATUS[autosave.status]}
-              {autosave.status === 'error' && <button onClick={autosave.retry} className="ml-1 underline">Retry</button>}
-            </span>
-          )}
+          {editable && <SaveIndicator status={autosave.status} onRetry={autosave.retry} />}
           {editable && (
             <Menu
               trigger={<Button variant="ghost" size="icon" aria-label="Note actions"><MoreHorizontal className="size-5" /></Button>}

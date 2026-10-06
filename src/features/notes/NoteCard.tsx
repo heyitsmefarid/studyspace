@@ -29,7 +29,7 @@ export function NoteCard({ note }: { note: NoteListItem }) {
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-ink-faint">
           {subject && <span className="inline-flex items-center gap-1.5"><SubjectDot color={subject.color} size={8} />{subject.name}</span>}
           <span>{formatDistanceToNowStrict(parseISO(note.updated_at), { addSuffix: true })}</span>
-          {note.is_pinned && <Pin className="size-3.5 text-gold" aria-label="Pinned" />}
+          {note.is_pinned && <Pin className="size-3.5 animate-twinkle text-gold" aria-label="Pinned" />}
           {note.is_favorite && <Star className="size-3.5 text-gold" aria-label="Favourite" />}
           {note.is_shared && mine && <Share2 className="size-3.5 text-teal" aria-label="Shared" />}
           {!mine && <Badge tone="primary">{partner?.display_name ?? 'Partner'}'s note</Badge>}

@@ -10,9 +10,9 @@ const COMPONENTS: Components = {
 };
 const PLUGINS = [remarkGfm];
 
-export function MarkdownView({ markdown, className }: { markdown: string; className?: string }) {
+export function MarkdownView({ markdown, className, reveal }: { markdown: string; className?: string; reveal?: boolean }) {
   return (
-    <div className={cn('prose-ss', className)}>
+    <div className={cn('prose-ss', reveal && 'stagger [--stagger-step:60ms]', className)}>
       <Markdown remarkPlugins={PLUGINS} skipHtml components={COMPONENTS}>{markdown}</Markdown>
     </div>
   );

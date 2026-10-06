@@ -58,7 +58,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
   ];
 
   return (
-    <div role="toolbar" aria-label="Formatting" className="sticky top-14 z-20 -mx-1 mb-3 flex gap-1 overflow-x-auto bg-bg/90 px-1 py-1.5 backdrop-blur md:top-0">
+    <div role="toolbar" aria-label="Formatting" className="sticky top-14 z-20 -mx-1 mb-3 flex animate-fade-in gap-1 overflow-x-auto bg-bg/90 px-1 py-1.5 backdrop-blur md:top-0">
       {groups.map((g, gi) => (
         <div key={gi} className="flex shrink-0 gap-0.5 border-r border-line pr-1 last:border-r-0">
           {g.map(({ label, icon: Icon, run, active }) => (

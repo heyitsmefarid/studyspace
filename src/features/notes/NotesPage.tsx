@@ -122,7 +122,7 @@ export default function NotesPage() {
                 : <EmptyState title="Every constellation starts with one star." body="Write your first note."
                     action={<Button onClick={newNote}><Plus className="size-4" /> Write your first note</Button>} />
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {list!.map((n) => <NoteCard key={n.id} note={n} />)}
             </div>
           )}

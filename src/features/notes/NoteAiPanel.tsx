@@ -136,7 +136,7 @@ export function NoteAiPanel({ note, editorRef, editable }: { note: Note; editorR
         <Switch label="Use my selection" hint="Highlight text in the note first." checked={src.useSelection} onCheckedChange={src.setUseSelection} />
         {longNote && <Badge tone="gold" className="self-start">Long note — Nova reads the first ~24k characters</Badge>}
         {empty && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Write something first — Nova works from your note.</p>}
-        <div className="-mx-1 flex flex-col gap-0.5">
+        <div className="stagger -mx-1 flex flex-col gap-0.5 [--stagger-step:30ms]">
           {(Object.keys(TEXT_ACTIONS) as TextAction[]).map((a) => {
             const m = TEXT_ACTIONS[a];
             if (a !== 'explain') return <ActionButton key={a} icon={m.icon} label={m.label} desc={m.desc} active={active === a} onClick={() => runText(a)} />;
@@ -163,13 +163,13 @@ export function NoteAiPanel({ note, editorRef, editable }: { note: Note; editorR
         <div className="flex flex-col gap-3">
           <AiStatus task={textTask} />
           {result && (
-            <Card className="flex flex-col gap-3 p-4">
+            <Card className="flex animate-rise-in flex-col gap-3 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-display text-lg">{resultLabel}</h3>
                 <ProviderBadge meta={textTask.meta} />
               </div>
               {lastLabel && <p className="-mt-2 text-xs text-ink-faint">From: {lastLabel}</p>}
-              <MarkdownView markdown={result} className="text-sm" />
+              <MarkdownView markdown={result} className="text-sm" reveal />
               <div className="flex flex-wrap gap-2">
                 {editable && <Button size="sm" onClick={insert}><PenLine className="size-4" /> Insert into note</Button>}
                 <Button size="sm" variant="secondary" onClick={saveAsNote} loading={createNote.isPending}><FilePlus2 className="size-4" /> Save as new note</Button>
@@ -184,7 +184,7 @@ export function NoteAiPanel({ note, editorRef, editable }: { note: Note; editorR
         <div className="flex flex-col gap-3">
           <AiStatus task={practice} loadingLabel="Nova is writing practice questions…" />
           {practice.status === 'success' && practice.data && (
-            <Card className="flex flex-col gap-3 p-4">
+            <Card className="flex animate-rise-in flex-col gap-3 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-display text-lg">Practice</h3>
                 <ProviderBadge meta={practice.meta} />
