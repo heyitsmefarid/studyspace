@@ -11,6 +11,7 @@ const r = (path: string, load: () => Promise<{ default: ComponentType }>) => ({ 
 export const router = createBrowserRouter([
   r('/login', () => import('@/features/auth/LoginPage')),
   r('/set-password', () => import('@/features/auth/SetPasswordPage')),
+  r('/signup', () => import('@/features/auth/SignUpPage')),
   {
     element: <RequireAuth />,
     errorElement: <RouteError />,

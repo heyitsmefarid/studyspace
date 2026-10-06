@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router';
-import { ChevronLeft, ChevronRight, KeyRound, LogOut, Palette, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, KeyRound, LogOut, Palette, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -11,9 +11,11 @@ import { PasswordSection } from './sections/PasswordSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { StudySection } from './sections/StudySection';
 import { AiSection } from './sections/AiSection';
+import { PartnerSection } from './sections/PartnerSection';
 
 const SECTIONS: { id: string; label: string; icon: LucideIcon; render: () => React.ReactNode }[] = [
   { id: 'profile', label: 'Profile', icon: UserRound, render: () => <ProfileSection /> },
+  { id: 'partner', label: 'Partner', icon: Heart, render: () => <PartnerSection /> },
   { id: 'subjects', label: 'Subjects', icon: Tags, render: () => <SubjectsSection /> },
   { id: 'password', label: 'Password', icon: KeyRound, render: () => <PasswordSection /> },
   { id: 'appearance', label: 'Appearance', icon: Palette, render: () => <AppearanceSection /> },

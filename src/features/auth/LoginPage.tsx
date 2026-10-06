@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyMessage } from '@/lib/errors';
@@ -104,6 +104,7 @@ export default function LoginPage() {
         <button onClick={() => { setResetMode((m) => !m); setError(null); setResetMsg(null); }} className="mt-4 text-sm text-primary underline-offset-2 hover:underline">
           {resetMode ? 'Back to log in' : 'Forgot password?'}
         </button>
+        {!resetMode && <p className="mt-3 text-sm text-ink-muted">New here? <Link to="/signup" className="text-primary underline-offset-2 hover:underline">Create an account</Link></p>}
       </Card>
     </main>
   );

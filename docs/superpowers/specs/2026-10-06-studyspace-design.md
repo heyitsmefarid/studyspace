@@ -30,12 +30,12 @@ NOTES → AI → FLASHCARDS → QUIZZES → STUDY MODE → PROGRESS → AI ANALY
 
 ### Assumptions (not explicitly stated by the user)
 - Currency for the marketplace is ₱ (PHP); default timezone `Asia/Manila`, editable per profile.
-- The two accounts are created once in the Supabase dashboard (auto-confirmed), because Supabase's built-in email only delivers to project team members. Custom SMTP (the user's existing Resend + iskonnect.me setup) is an optional later step that enables "forgot password" emails.
+- Accounts are created in the app (decided 2026-10-06, no hard-coded emails or credentials): the first sign-up becomes member #1, who invites the second member by email from Settings → Partner; the database refuses any third account. Supabase's built-in email only reaches project team members, so "Confirm email" should be off (or custom SMTP via Resend + iskonnect.me added) for the partner's sign-up and for password-reset emails.
 - The partner is shown by their display name in the UI, never as "Girlfriend".
 - AI replies arrive whole (no token streaming) in this version.
 
 ### Success criteria
-1. Only the two allowlisted emails can ever hold accounts; any other signup fails at the database.
+1. At most two accounts can ever exist: the first sign-up, plus the one email it invites; any other sign-up fails at the database.
 2. The full loop works end-to-end on real Supabase data: write a note → generate flashcards (review/edit) → study with spaced repetition → take a quiz → AI analysis → AI study plan → "Add to Calendar" → study mode session → stats/XP/streak update.
 3. No AI key appears anywhere in the built frontend bundle (`dist/` grep is clean).
 4. RLS checks pass: each user cannot read the other's private notes, decks, quizzes, AI conversations or notifications; the Supabase security advisor reports no errors.
@@ -151,7 +151,7 @@ All routes except `/login` and `/set-password` are protected; a user without a c
 ## 4. Features
 
 ### 4.1 Authentication & profile
-- Email + password login (Supabase Auth). No signup UI.
+- Email + password login and sign-up (Supabase Auth). Sign-up is open only for the first account and afterwards only for the email member #1 invited (Settings → Partner).
 - `/set-password` handles Supabase recovery links; Settings → Password changes the password for a signed-in user (requires current session).
 - Logout everywhere it is expected (profile menu, settings).
 - Onboarding on first login creates the profile (display name, star colour, subjects, timezone) and a real "Welcome to StudySpace" note explaining the loop (deletable).
@@ -290,7 +290,7 @@ RLS is enabled on every table. Helper functions (`security definer`, `stable`, f
 | marketplace_items | members | seller |
 | allowed_emails, ai_requests | none | none (service role only) |
 
-**Signup guard:** a `before insert` trigger on `auth.users` raises an exception unless the email is in `allowed_emails`, so no other account can exist even if signups are enabled.
+**Signup guard:** a `before insert` trigger on `auth.users` allows the first account, then only emails in `allowed_emails` (written by the `invite_partner` RPC, callable by members only), and refuses everything once two members exist.
 
 ### 5.3 Storage
 Private buckets: `avatars`, `note-files` (note images + attachments), `card-images`, `chat-files`, `market-images`. Object paths start with the uploader's id (`{uid}/…`); insert/update/delete only into your own prefix. Read: `avatars`, `chat-files`, `market-images` → any member; `note-files` → owner or the note is shared (checked via `note_attachments`/note image path lookup); `card-images` → `can_view_deck`. Files are displayed via short-lived signed URLs (cached in TanStack Query). Upload limits enforced client-side and by bucket `file_size_limit` (avatars 2 MB, others 10 MB); allowed MIME types set per bucket.
@@ -448,9 +448,9 @@ Each phase gets its own implementation plan in `docs/superpowers/plans/`.
 
 ## 11. Deployment & setup checklist (user steps marked 👤)
 1. Supabase project created and migrated (done by Claude via connector).
-2. 👤 Create the two users in Dashboard → Authentication → Add user (auto-confirm); emails also inserted into `allowed_emails` by migration.
+2. 👤 Create the first account at `/signup`, then invite the partner from Settings → Partner; the partner signs up at `/signup` with that email.
 3. 👤 Set function secrets (Dashboard → Edge Functions → Secrets): `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_MODEL`, `ALLOWED_ORIGINS` (limits optional).
-4. 👤 Optional: Auth → SMTP with Resend for password-reset emails; disable "Allow new users to sign up".
+4. 👤 Auth → Email: turn off "Confirm email" (or add Resend SMTP) so the partner's sign-up and password resets work.
 5. Vercel project with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; deploy (`vercel deploy --prod`).
 6. Note: Supabase Free pauses projects after ~7 days without activity.
 

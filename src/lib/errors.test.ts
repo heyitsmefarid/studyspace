@@ -10,6 +10,8 @@ describe('friendlyMessage', () => {
     [new TypeError('Failed to fetch'), "Can't reach StudySpace — check your connection."],
     [{ message: 'Invalid login credentials' }, 'Wrong email or password.'],
     [{ message: 'StudySpace is private — this email is not on the guest list.' }, 'StudySpace is private — this email is not on the guest list.'],
+    [{ message: 'StudySpace already has its two members.' }, 'StudySpace already has its two members.'],
+    [{ message: 'Database error saving new user', status: 500 }, "This email can't join StudySpace — it already has two members, or this email hasn't been invited yet."],
     [42, 'Something went wrong. Please try again.'],
   ])('maps %o', (input, expected) => {
     expect(friendlyMessage(input)).toBe(expected);

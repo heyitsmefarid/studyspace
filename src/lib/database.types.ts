@@ -1492,6 +1492,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      invite_partner: {
+        Args: { p_email: string }
+        Returns: undefined
+      }
+      pending_invite: {
+        Args: never
+        Returns: string
+      }
       complete_flashcard_session: {
         Args: { p_session_key: string }
         Returns: number
