@@ -13,6 +13,7 @@ import { useAttempt } from './api';
 import { classifyTopics, type AnswerRecord, type TopicStat } from './scoring';
 import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { ResultsSky } from './ResultsSky';
+import { AnalysisPanel } from './AnalysisPanel';
 
 function ReviewSuggestions({ topics }: { topics: string[] }) {
   const q = useQuery({
@@ -81,7 +82,7 @@ export default function ResultsPage() {
         <Card><h3 className="text-sm font-semibold text-ink-muted">Needs more data</h3><div className="mt-2 flex flex-wrap gap-1.5">{topics.needsData.map((t) => <Badge key={t}>{t}</Badge>)}{!topics.needsData.length && <span className="text-sm text-ink-faint">—</span>}</div></Card>
       </div>
       <ReviewSuggestions topics={topics.weak.slice(0, 3)} />
-      <section data-slot="nova-analysis" />
+      <AnalysisPanel key={a.id} attempt={a} />
       <Card>
         <h2 className="font-display text-lg">Your answers</h2>
         <ol className="mt-3 flex flex-col gap-2">
