@@ -4,9 +4,10 @@ import { cn } from '@/lib/cn';
 export function Card({ className, interactive, ...rest }: HTMLAttributes<HTMLDivElement> & { interactive?: boolean }) {
   return (
     <div
+      data-glow={interactive || undefined}
       className={cn(
-        'rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-glow',
-        interactive && 'transition hover:-translate-y-0.5 hover:border-line-strong',
+        'card-sheen rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-glow',
+        interactive && 'transition-[translate,border-color,box-shadow] duration-200 ease-soft hover:-translate-y-0.5 hover:border-line-strong',
         className,
       )}
       {...rest}

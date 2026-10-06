@@ -4,6 +4,9 @@ import '@fontsource-variable/fraunces';
 import '@fontsource-variable/figtree';
 import './index.css';
 import App from './App';
+import { installPointerGlow } from './lib/pointerGlow';
+
+installPointerGlow();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
