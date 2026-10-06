@@ -62,7 +62,7 @@ export default function LoginPage() {
         </Field>
         {!resetMode && (
           <Field label="Password">
-            {(id) => <PasswordInput id={id} value={password} onChange={setPassword} autoComplete="current-password" />}
+            {(id) => <PasswordInput id={id} value={password} onChange={setPassword} autoComplete="current-password" required />}
           </Field>
         )}
         {error && <p role="alert" className="text-sm text-coral">{error}</p>}

@@ -160,7 +160,10 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 .stagger > :nth-child(9) { --i: 8; }
 .stagger > :nth-child(10) { --i: 9; }
 .stagger > :nth-child(11) { --i: 10; }
+/* Nova replies: paragraphs past the 8th appear together, so a long answer never keeps trickling in. */
+.stagger.stagger-cap-8 > :nth-child(n+9) { --i: 7; }
 
+@layer components {
 /* Starlit sheen on cards + pointer-following glow (pointerGlow.ts sets --mx/--my). */
 .card-sheen { position: relative; isolation: isolate; }
 .card-sheen::before {
@@ -201,8 +204,17 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
+/* High-contrast / forced colours: system colours replace backgrounds, so draw the tick with them explicitly. */
+@media (forced-colors: active) {
+  .check-pop { forced-color-adjust: none; border-color: CanvasText; background: Canvas; }
+  .check-pop:checked { background: Highlight; border-color: Highlight; }
+  .check-pop::before { background: HighlightText; }
+}
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .animate-spin { animation-duration: 1s !important; animation-iteration-count: infinite !important; }
 }
 
 .ring-fill { transition: stroke-dashoffset 600ms var(--ease-soft); animation: ring-in 700ms var(--ease-soft) both; }

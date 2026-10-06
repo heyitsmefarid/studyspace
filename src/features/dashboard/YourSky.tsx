@@ -26,6 +26,7 @@ export function YourSky() {
   const stats = useDeckStats();
   const focus = useTotalFocusSeconds(user?.id);
   const shownFocus = useCountUp(focus, 1100);
+  const shownXp = useCountUp(profile?.xp ?? 0, 1100);
 
   const skySubjects = useMemo(() => {
     const mastery = subjectMastery(decks.data ?? [], stats.data ?? new Map());
@@ -57,6 +58,7 @@ export function YourSky() {
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line px-5 py-4">
         <Comet streak={streak} size="sm" />
         <p className="text-sm"><span className="text-ink-muted">Total focus</span> <strong className="tabular">{formatDuration(shownFocus)}</strong></p>
+        <p className="text-sm"><span className="text-ink-muted">XP</span> <strong className="tabular">{shownXp.toLocaleString()}</strong></p>
         <div className="w-36"><RankBadge xp={profile.xp} compact /></div>
         <span className="flex-1" />
         <Link to="/study" className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-ink shadow-glow">

@@ -12,7 +12,7 @@ const PLUGINS = [remarkGfm];
 
 export function MarkdownView({ markdown, className, reveal }: { markdown: string; className?: string; reveal?: boolean }) {
   return (
-    <div className={cn('prose-ss', reveal && 'stagger [--stagger-step:60ms]', className)}>
+    <div className={cn('prose-ss', reveal && 'stagger stagger-cap-8 [--stagger-step:60ms]', className)}>
       <Markdown remarkPlugins={PLUGINS} skipHtml components={COMPONENTS}>{markdown}</Markdown>
     </div>
   );

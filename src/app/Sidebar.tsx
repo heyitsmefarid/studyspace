@@ -25,7 +25,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface/60 p-3 backdrop-blur transition-[width] duration-300 ease-soft md:flex',
+        'sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface/60 p-3 backdrop-blur md:flex',
         collapsed ? 'w-[76px]' : 'w-64',
       )}
     >

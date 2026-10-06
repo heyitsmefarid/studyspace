@@ -15,9 +15,9 @@ function NovaAvatar() {
   return <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-gold-soft font-display text-gold shadow-glow">✦</span>;
 }
 
-export function ChatView({ messages, sending, error, canRetry, onRetry, remainingToday, empty }: {
+export function ChatView({ messages, sending, error, canRetry, onRetry, remainingToday, arrivedId, empty }: {
   messages: AiMessageRow[]; sending: boolean; error: AiError | null; canRetry: boolean; onRetry: () => void;
-  remainingToday?: number; empty: ReactNode;
+  remainingToday?: number; arrivedId?: string | null; empty: ReactNode;
 }) {
   const end = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -50,7 +50,7 @@ export function ChatView({ messages, sending, error, canRetry, onRetry, remainin
                 'rounded-2xl px-4 py-2.5',
                 m.role === 'user' ? 'whitespace-pre-wrap rounded-br-md bg-primary-soft text-ink' : 'rounded-tl-md border border-line bg-surface',
               )}>
-                {m.role === 'user' ? m.content : <MarkdownView markdown={m.content} className="text-[15px]" reveal={m.id === lastAssistant?.id} />}
+                {m.role === 'user' ? m.content : <MarkdownView markdown={m.content} className="text-[15px]" reveal={m.id === arrivedId} />}
               </div>
               <div className="flex flex-wrap items-center gap-2 px-1">
                 <time className="text-[11px] text-ink-faint" dateTime={m.created_at}>{format(parseISO(m.created_at), 'HH:mm')}</time>

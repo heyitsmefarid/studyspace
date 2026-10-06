@@ -117,7 +117,7 @@ export default function PlannerPage() {
         <h2 className="font-display text-xl" aria-live="polite">{titleFor(view, dateKey, range.days)}</h2>
       </div>
 
-      <div key={`${view}:${dateKey}`} className="animate-fade-in">
+      <div key={view} className="animate-fade-in">
       {isPending ? (
         <Skeleton className={view === 'day' ? 'h-40' : 'h-96'} />
       ) : view === 'month' ? (

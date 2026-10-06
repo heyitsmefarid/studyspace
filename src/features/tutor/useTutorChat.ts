@@ -30,6 +30,8 @@ export function useTutorChat(conversationId: string | undefined, opts: ChatOptio
   const [pending, setPending] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ convId: string; error: AiError } | null>(null);
   const [lastMeta, setLastMeta] = useState<{ convId: string; meta: AiMeta } | null>(null);
+  // Only a reply that arrives while the student watches is revealed; reopened chats show at once.
+  const [arrivedId, setArrivedId] = useState<string | null>(null);
   const optsRef = useRef(opts);
   useEffect(() => { optsRef.current = opts; });
 
@@ -53,6 +55,7 @@ export function useTutorChat(conversationId: string | undefined, opts: ChatOptio
         provider: r.meta.provider, model: r.meta.model, fell_back: r.meta.fellBack,
       });
       append(convId, saved);
+      setArrivedId(saved.id);
       setLastMeta({ convId, meta: r.meta });
       await touchConversation(convId);
       void qc.invalidateQueries({ queryKey: tutorKeys.list });
@@ -106,6 +109,7 @@ export function useTutorChat(conversationId: string | undefined, opts: ChatOptio
     error: failure?.convId === here ? failure.error : null,
     canRetry: messages.at(-1)?.role === 'user',
     remainingToday: lastMeta?.convId === here ? lastMeta.meta.remainingToday : undefined,
+    arrivedId,
     send,
     retry,
   };
