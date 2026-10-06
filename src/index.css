@@ -205,3 +205,14 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 @keyframes banner-in { from { transform: translateY(-100%); } to { transform: none; } }
 @media (hover: hover) { a:hover .logo-orbit, .logo-orbit-auto .logo-orbit { animation: orbit-spin 1.2s var(--ease-soft) 1; } }
 .logo-orbit-slow .logo-orbit { animation: orbit-spin 24s linear infinite; }
+
+/* Auth sky: a rare shooting star (one pass every ~12 s). */
+.shooting-star { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .shooting-star { animation: shooting-star 12s ease-in 2s infinite; }
+}
+@keyframes shooting-star {
+  0%, 92% { opacity: 0; transform: translate(40px, 20px); }
+  94% { opacity: .9; }
+  100% { opacity: 0; transform: translate(300px, 130px); }
+}

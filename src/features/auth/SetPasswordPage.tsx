@@ -4,13 +4,12 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { friendlyMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Field, Input } from '@/components/ui/Field';
-import { Logo } from '@/components/sky/Logo';
+import { Field } from '@/components/ui/Field';
 import { ConstellationLoader } from '@/components/sky/ConstellationLoader';
 import { useAuth } from './AuthProvider';
-import { StarBackdrop } from './LoginPage';
+import { AuthLayout } from './AuthLayout';
+import { PasswordInput } from './PasswordInput';
 
 export default function SetPasswordPage() {
   const { session, loading } = useAuth();
@@ -43,22 +42,18 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center px-4 py-10">
-      <StarBackdrop />
-      <Card className="relative z-10 w-full max-w-sm">
-        <Logo />
+    <AuthLayout>
         <h1 className="mt-6 font-display text-2xl">Choose a new password</h1>
         <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4">
-          <Field label="New password" hint="At least 8 characters">
-            {(id) => <Input id={id} type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />}
+          <Field label="New password">
+            {(id) => <PasswordInput id={id} value={password} onChange={setPassword} autoComplete="new-password" showStrength />}
           </Field>
           <Field label="Confirm password">
-            {(id) => <Input id={id} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />}
+            {(id) => <PasswordInput id={id} value={confirm} onChange={setConfirm} autoComplete="new-password" />}
           </Field>
           {error && <p role="alert" className="text-sm text-coral">{error}</p>}
           <Button type="submit" loading={busy} size="lg" className="justify-center">Save password</Button>
         </form>
-      </Card>
-    </main>
+    </AuthLayout>
   );
 }

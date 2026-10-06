@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select } from '@/components/ui/Field';
 import { Logo } from '@/components/sky/Logo';
-import { StarBackdrop } from '@/features/auth/LoginPage';
+import { StarBackdrop } from '@/features/auth/AuthLayout';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useUpdateProfile } from '@/features/auth/useProfileMutations';
 import { ColorSwatches } from '@/features/subjects/SubjectPicker';
