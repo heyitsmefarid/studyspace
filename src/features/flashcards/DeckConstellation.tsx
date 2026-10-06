@@ -21,7 +21,7 @@ export function DeckConstellation({ cardIds, states, size = 'sm', label, draw = 
         pathLength={1} strokeDasharray="1" className={draw ? 'constellation-line animate-draw-line' : 'constellation-line'} />
       {pts.map((p, i) => {
         const s = STYLE[states[i] ?? 'new'];
-        return <circle key={p.id} cx={p.x} cy={p.y} r={s.r * (size === 'lg' ? 1.6 : 1)} fill={s.fill} opacity={s.o}
+        return <circle key={p.id} cx={p.x} cy={p.y} r={s.r * (size === 'lg' ? 1.6 : 1)} fill={s.fill} fillOpacity={s.o}
           className={cn(states[i] === 'mastered' && 'animate-twinkle', draw && states[i] !== 'mastered' && 'animate-pop-in')}
           style={{ animationDelay: states[i] === 'mastered' ? `${(i % 7) * 0.4}s` : `${Math.min(i, 24) * 25}ms`, transformOrigin: `${p.x}px ${p.y}px` }} />;
       })}

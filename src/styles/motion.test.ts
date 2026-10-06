@@ -23,4 +23,13 @@ describe('motion foundation', () => {
     expect(css).toMatch(/\.stagger > :nth-child\(11\)\s*\{\s*--i:\s*10;?\s*\}/);
     expect(css).not.toMatch(/\.stagger > :nth-child\(1[3-9]\)/);
   });
+
+  // Entrances must hand back to the element's own styles (e.g. a done task chip at opacity .6), so they fill backwards.
+  it.each(['page-in', 'rise-in', 'pop-in', 'fade-in', 'sheet-up', 'slide-in-right', 'slide-in-left', 'grow-x', 'draw-line'])(
+    'entrance %s fills backwards, not both', (name) => {
+      expect(css).toMatch(new RegExp(String.raw`--animate-${name}: ${name} [^;]*backwards;`));
+    });
+  it('stagger entrance fills backwards', () => {
+    expect(css).toMatch(/\.stagger > \*\s*\{[^}]*animation: rise-in [^;]*backwards;/);
+  });
 });

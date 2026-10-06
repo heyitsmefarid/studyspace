@@ -21,7 +21,8 @@ export function ResultsSky({ answers, breakdown }: { answers: AnswerRecord[]; br
         const halo = s.total >= 2 ? (s.accuracy >= 0.8 ? 'var(--teal)' : s.accuracy < 0.6 ? 'var(--coral)' : null) : null;
         return (
           <g key={t}>
-            {halo && <circle cx={c.x} cy={c.y} r={42} fill={halo} opacity={0.08} className="animate-fade-in" />}
+            {/* fillOpacity, not opacity: the fade-in animation owns opacity and would end at 1 */}
+            {halo && <circle cx={c.x} cy={c.y} r={42} fill={halo} fillOpacity={0.08} className="animate-fade-in" />}
             <text x={c.x} y={Math.min(H - 6, c.y + 54)} textAnchor="middle" fontSize="12" fill="var(--ink-muted)">{t} · {s.correct}/{s.total}</text>
           </g>
         );

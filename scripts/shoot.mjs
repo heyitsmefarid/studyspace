@@ -1,5 +1,6 @@
 /* global document, window */
-// usage: npm run shoot -- /login / /notes   (dev server must be running on :5173)
+// usage: npm run shoot -- /login / /notes   (dev server must be running on :5174)
+// SHOOT_REDUCED=1 emulates prefers-reduced-motion; SHOOT_WAIT=<ms> waits longer for animations to settle (default 700)
 import { chromium } from 'playwright';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 
@@ -13,7 +14,10 @@ mkdirSync('.shots', { recursive: true });
 const browser = await chromium.launch();
 for (const theme of ['night', 'daybreak']) {
   for (const [label, width, height] of [['phone', 375, 812], ['desktop', 1280, 800]]) {
-    const ctx = await browser.newContext({ viewport: { width, height }, colorScheme: theme === 'night' ? 'dark' : 'light' });
+    const ctx = await browser.newContext({
+      viewport: { width, height }, colorScheme: theme === 'night' ? 'dark' : 'light',
+      reducedMotion: process.env.SHOOT_REDUCED ? 'reduce' : 'no-preference',
+    });
     const page = await ctx.newPage();
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -29,9 +33,9 @@ for (const theme of ['night', 'daybreak']) {
       errors.length = 0;
       await page.goto(`${BASE}${r}`);
       await page.waitForLoadState('networkidle').catch(() => {});
-      await page.waitForTimeout(700);
+      await page.waitForTimeout(Number(process.env.SHOOT_WAIT ?? 700));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
-      const file = `.shots/${(r.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'home')}-${label}-${theme}.png`;
+      const file = `.shots/${(r.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'home')}-${label}-${theme}${process.env.SHOOT_REDUCED ? '-reduced' : ''}.png`;
       await page.screenshot({ path: file, fullPage: true });
       console.log(`${file}${overflow ? '  ⚠ horizontal overflow' : ''}${errors.length ? `  ⚠ ${errors.length} console error(s): ${errors[0]}` : ''}`);
     }
