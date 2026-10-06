@@ -31,8 +31,8 @@ export const router = createBrowserRouter([
           r('quizzes/:id/take', () => import('@/features/quizzes/TakeQuizPage')),
           r('quiz/take', () => import('@/features/quizzes/TakeQuizPage')),
           r('attempts/:id', () => import('@/features/quizzes/ResultsPage')),
-          r('tutor', () => import('@/features/tutor/TutorPage')),
-          r('tutor/:conversationId', () => import('@/features/tutor/TutorPage')),
+          // One optional-segment route so creating a chat (/tutor → /tutor/:id) keeps the page mounted.
+          r('tutor/:conversationId?', () => import('@/features/tutor/TutorPage')),
           r('planner', () => import('@/features/planner/PlannerPage')),
           r('planner/ai', () => import('@/features/planner/AiPlannerPage')),
           r('study', () => import('@/features/study/StudyPage')),
