@@ -29,13 +29,16 @@ export function rewriteImagePaths(content: JSONContent, map: Map<string, string>
 
 /**
  * Gives a copied note its own image files, so it survives the original being deleted or unshared.
+ * Only paths in `owned` (the source note's own image attachments) are fetched: note content is written by its
+ * author, so any other path is left as-is rather than fetched with the copier's access.
  * An image that can't be copied keeps its original path (it still shows while the original exists).
  */
 export async function copyNoteImages(content: JSONContent, deps: {
+  owned: ReadonlySet<string>;
   download: (path: string) => Promise<Blob>;
   upload: (file: File) => Promise<string>;
 }): Promise<{ content: JSONContent; failed: number }> {
-  const paths = storageImagePaths(content);
+  const paths = storageImagePaths(content).filter((p) => deps.owned.has(p));
   if (paths.length === 0) return { content, failed: 0 };
   const map = new Map<string, string>();
   let failed = 0;

@@ -114,7 +114,11 @@ export function useCopyNote() {
   return useMutation({
     mutationFn: async (note: Note): Promise<Note> => {
       const copy = await create.mutateAsync({ title: `${note.title} (copy)`.slice(0, 200), content: note.content as JSONContent, content_text: note.content_text });
+      // Only images the source note owns as attachments are copied (see copyNoteImages).
+      const owned = unwrap(await supabase.from('note_attachments').select('storage_path')
+        .eq('note_id', note.id).eq('owner_id', note.owner_id).eq('kind', 'image'));
       const images = await copyNoteImages(note.content as JSONContent, {
+        owned: new Set(owned.map((a) => a.storage_path)),
         download: async (path) => {
           const { data, error } = await supabase.storage.from('note-files').download(path);
           if (error) throw error;

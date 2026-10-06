@@ -29,7 +29,9 @@ describe('copyNoteImages', () => {
   it('re-uploads each image into the new note and points the content at the copies', async () => {
     const download = vi.fn(async (path: string) => new Blob([path], { type: 'image/png' }));
     const upload = vi.fn(async (file: File) => `me/new/${file.name}`);
-    const r = await copyNoteImages(doc(img('partner/n1/0f8fad5b-d9cb-469f-a165-70867728950e-cat.png'), img('partner/n1/0f8fad5b-d9cb-469f-a165-70867728950e-cat.png')), { download, upload });
+    const r = await copyNoteImages(doc(img('partner/n1/0f8fad5b-d9cb-469f-a165-70867728950e-cat.png'), img('partner/n1/0f8fad5b-d9cb-469f-a165-70867728950e-cat.png')), {
+      owned: new Set(['partner/n1/0f8fad5b-d9cb-469f-a165-70867728950e-cat.png']), download, upload,
+    });
     expect(download).toHaveBeenCalledOnce();
     expect(upload.mock.calls[0]![0].name).toBe('cat.png');
     expect(storageImagePaths(r.content)).toEqual(['me/new/cat.png']);
@@ -38,6 +40,7 @@ describe('copyNoteImages', () => {
 
   it('keeps the original path for an image that could not be copied, and counts it', async () => {
     const r = await copyNoteImages(doc(img('partner/n1/a.png'), img('partner/n1/b.png')), {
+      owned: new Set(['partner/n1/a.png', 'partner/n1/b.png']),
       download: async (p) => { if (p.endsWith('a.png')) throw new Error('gone'); return new Blob(['b']); },
       upload: async () => 'me/new/b.png',
     });
@@ -45,10 +48,22 @@ describe('copyNoteImages', () => {
     expect(r.failed).toBe(1);
   });
 
+  // Security review: content is author-controlled, so a shared note could name one of the COPIER's private files;
+  // copying would then re-upload it into a (possibly shared) note. Only the source note's own attachments are copied.
+  it('never fetches a path that is not one of the source note\'s own image attachments', async () => {
+    const download = vi.fn(async () => new Blob(['x']));
+    const r = await copyNoteImages(doc(img('partner/n1/a.png'), img('me/private/secret.png')), {
+      owned: new Set(['partner/n1/a.png']), download, upload: async () => 'me/new/a.png',
+    });
+    expect(download).toHaveBeenCalledExactlyOnceWith('partner/n1/a.png');
+    expect(storageImagePaths(r.content)).toEqual(['me/new/a.png', 'me/private/secret.png']);
+    expect(r.failed).toBe(0);
+  });
+
   it('does nothing for a note without images', async () => {
     const download = vi.fn();
     const d = doc({ type: 'paragraph' });
-    const r = await copyNoteImages(d, { download, upload: vi.fn() });
+    const r = await copyNoteImages(d, { owned: new Set(), download, upload: vi.fn() });
     expect(r).toEqual({ content: d, failed: 0 });
     expect(download).not.toHaveBeenCalled();
   });
