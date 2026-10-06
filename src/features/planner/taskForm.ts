@@ -4,6 +4,7 @@ import type { Tables, TablesInsert } from '@/lib/supabase';
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const TASK_KINDS = ['task', 'assignment', 'exam', 'deadline', 'study_session'] as const;
+export type TaskKind = (typeof TASK_KINDS)[number];
 
 export const TaskFormSchema = z.object({
   title: z.string().trim().min(1, 'Give it a title').max(200),
