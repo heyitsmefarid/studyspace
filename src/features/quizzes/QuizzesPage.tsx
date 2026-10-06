@@ -31,7 +31,7 @@ function QuizCard({ quiz, best }: { quiz: QuizWithCount; best?: number }) {
   const mine = quiz.owner_id === user?.id;
   const src = SOURCE[quiz.source] ?? SOURCE.manual!;
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <Card interactive className="flex flex-col gap-3 p-4">
       <div className="flex items-start justify-between gap-3">
         <Link to={`/quizzes/${quiz.id}`} className="min-w-0">
           <h3 className="truncate font-display text-lg">{quiz.title}</h3>
@@ -106,7 +106,7 @@ export default function QuizzesPage() {
           action={scope === 'mine' ? <div className="flex flex-wrap justify-center gap-2"><Button onClick={newQuiz}><Plus className="size-4" /> New quiz</Button>
             <Button variant="secondary" onClick={() => setQuick(true)}><Sparkles className="size-4" /> Quiz from a deck</Button></div> : undefined} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {quizzes.data!.map((q) => <QuizCard key={q.id} quiz={q} best={best.data?.get(q.id)} />)}
         </div>
       )}

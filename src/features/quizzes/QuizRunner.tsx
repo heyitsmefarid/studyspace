@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Clock } from 'lucide-react';
+import { Check, Clock } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { formatClock } from '@/lib/dates';
 import { Button } from '@/components/ui/Button';
@@ -106,7 +106,7 @@ export function QuizRunner({ source, onSubmit, embedded = false }: {
           </span>
         )}
       </div>
-      <Card>
+      <Card key={q.id} className="animate-[step-in-right_320ms_var(--ease-soft)_both]">
         {q.topic && <Badge tone="primary">{q.topic}</Badge>}
         <h2 className="mt-2 font-display text-xl leading-snug">{q.question}</h2>
         <div className="mt-4 flex flex-col gap-2">
@@ -115,18 +115,20 @@ export function QuizRunner({ source, onSubmit, embedded = false }: {
             const right = sameAnswer(o, q.correctAnswer);
             return (
               <button key={o} onClick={() => choose(o)} disabled={locked}
-                className={cn('min-h-12 rounded-xl border px-4 py-3 text-left text-sm transition',
+                className={cn('flex min-h-12 items-center gap-2 rounded-xl border px-4 py-3 text-left text-sm transition-[background-color,border-color,color,opacity] duration-200',
                   !locked && (picked ? 'border-primary bg-primary-soft' : 'border-line hover:border-primary'),
-                  locked && right && 'border-teal bg-teal-soft text-teal',
-                  locked && picked && !right && 'border-coral bg-coral-soft text-coral',
+                  locked && right && 'animate-pop-in border-teal bg-teal-soft text-teal',
+                  locked && picked && !right && 'animate-shake border-coral bg-coral-soft text-coral',
                   locked && !picked && !right && 'border-line opacity-60')}>
-                <span className="mr-2 text-ink-faint tabular">{q.type === 'tf' ? o[0] : i + 1}</span>{o}
+                <span className="text-ink-faint tabular">{q.type === 'tf' ? o[0] : i + 1}</span>
+                <span className="flex-1">{o}</span>
+                {locked && right && <Check className="size-4 shrink-0 animate-pop-in" aria-hidden />}
               </button>
             );
           })}
         </div>
         {locked && (
-          <div className={cn('mt-4 rounded-xl p-3 text-sm', isCorrect(q, current!.chosen) ? 'bg-teal-soft text-teal' : 'bg-coral-soft text-coral')} role="status">
+          <div className={cn('mt-4 animate-rise-in rounded-xl p-3 text-sm', isCorrect(q, current!.chosen) ? 'bg-teal-soft text-teal' : 'bg-coral-soft text-coral')} role="status">
             <strong>{isCorrect(q, current!.chosen) ? 'Correct!' : `Not quite — it's “${q.correctAnswer}”.`}</strong>
             {q.explanation && <p className="mt-1 text-ink">{q.explanation}</p>}
           </div>

@@ -13,6 +13,7 @@ import { useAttempt } from './api';
 import { classifyTopics, type AnswerRecord, type TopicStat } from './scoring';
 import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { ResultsSky } from './ResultsSky';
+import { useCountUp } from '@/lib/countUp';
 import { AnalysisPanel } from './AnalysisPanel';
 
 function ReviewSuggestions({ topics }: { topics: string[] }) {
@@ -54,6 +55,7 @@ export default function ResultsPage() {
   const answers = useMemo(() => (Array.isArray(q.data?.answers) ? (q.data!.answers as unknown as AnswerRecord[]) : []), [q.data]);
   const breakdown = useMemo(() => (q.data?.topic_breakdown ?? {}) as unknown as Record<string, TopicStat>, [q.data]);
   const topics = useMemo(() => classifyTopics(breakdown), [breakdown]);
+  const shownScore = useCountUp(q.data?.score ?? 0);
 
   if (q.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-32" /><Skeleton className="h-60" /></div>;
   if (!q.data) return <EmptyState title="Result not found" action={<Link to="/quizzes" className="text-primary underline">Back to quizzes</Link>} />;
@@ -68,15 +70,15 @@ export default function ResultsPage() {
         <ProgressRing value={Number(a.accuracy)} size={96} stroke={7} color="var(--teal)" />
         <div className="flex-1">
           <p className="text-sm text-ink-muted">{a.title}</p>
-          <p className="font-display text-5xl tabular">{a.score}/{a.total}</p>
+          <p className="font-display text-5xl tabular">{shownScore}/{a.total}</p>
           <p className="mt-1 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-muted sm:justify-start">
             {formatDuration(a.duration_seconds)} · <Badge>{a.mode}</Badge> <Badge tone="gold">+20 XP</Badge>
           </p>
         </div>
       </Card>
-      {perfect && <div className="rounded-xl bg-gold-soft px-4 py-3 text-center font-display text-lg text-gold">Supernova! A perfect score ✦</div>}
+      {perfect && <div className="animate-pop-in rounded-xl bg-gold-soft px-4 py-3 text-center font-display text-lg text-gold"><span className="text-shimmer animate-shimmer-text">Supernova! A perfect score ✦</span></div>}
       <Card><ResultsSky answers={answers} breakdown={breakdown} /></Card>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="stagger grid gap-4 sm:grid-cols-3">
         <Card><h3 className="text-sm font-semibold text-teal">Strong topics</h3><div className="mt-2 flex flex-wrap gap-1.5">{topics.strong.map((t) => <Badge key={t} tone="teal">{t}</Badge>)}{!topics.strong.length && <span className="text-sm text-ink-faint">—</span>}</div></Card>
         <Card><h3 className="text-sm font-semibold text-coral">Needs work</h3><div className="mt-2 flex flex-wrap gap-1.5">{topics.weak.map((t) => <Badge key={t} tone="coral">{t}</Badge>)}{!topics.weak.length && <span className="text-sm text-ink-faint">—</span>}</div></Card>
         <Card><h3 className="text-sm font-semibold text-ink-muted">Needs more data</h3><div className="mt-2 flex flex-wrap gap-1.5">{topics.needsData.map((t) => <Badge key={t}>{t}</Badge>)}{!topics.needsData.length && <span className="text-sm text-ink-faint">—</span>}</div></Card>
