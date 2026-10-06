@@ -1,0 +1,8 @@
+# Netlify: same headers as vercel.json (src/app/securityHeaders.test.ts keeps them in sync).
+# The script-src hash is the inline theme script in index.html — change one, update the other.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-IW+HkcZt202fHEJY43Yvat/gX/WZ912NQtHX8yzuj+g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob: https://*.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
