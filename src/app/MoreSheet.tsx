@@ -6,7 +6,7 @@ import { MORE_ITEMS } from './nav';
 export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="More">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="stagger grid grid-cols-2 gap-3 [--stagger-step:30ms]">
         {MORE_ITEMS.map(({ to, label, icon: Icon, phase }) => (
           <Link
             key={to}

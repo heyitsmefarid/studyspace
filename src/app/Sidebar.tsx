@@ -25,7 +25,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface/60 p-3 backdrop-blur md:flex',
+        'sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface/60 p-3 backdrop-blur transition-[width] duration-300 ease-soft md:flex',
         collapsed ? 'w-[76px]' : 'w-64',
       )}
     >
@@ -58,14 +58,17 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
             end={to === '/'}
             title={collapsed ? label : undefined}
             className={({ isActive }) => cn(
-              'flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition',
+              'flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-200',
               isActive ? 'bg-primary-soft text-primary' : 'text-ink-muted hover:bg-surface-2 hover:text-ink',
               collapsed && 'justify-center px-0',
             )}
           >
-            <Icon className="size-5 shrink-0" aria-hidden />
-            {!collapsed && <span className="flex-1">{label}</span>}
-            {!collapsed && phase === 2 && <Badge>soon</Badge>}
+            {({ isActive }) => (<>
+              <Icon className="size-5 shrink-0" aria-hidden />
+              {!collapsed && <span className="flex-1">{label}</span>}
+              {!collapsed && phase === 2 && <Badge>soon</Badge>}
+              {!collapsed && isActive && <span aria-hidden className="size-1.5 animate-pop-in rounded-full bg-gold shadow-[0_0_8px_var(--gold)]" />}
+            </>)}
           </NavLink>
         ))}
       </nav>

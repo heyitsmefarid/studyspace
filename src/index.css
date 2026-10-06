@@ -201,3 +201,7 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 
 .ring-fill { transition: stroke-dashoffset 600ms var(--ease-soft); animation: ring-in 700ms var(--ease-soft) both; }
 @keyframes ring-in { from { stroke-dashoffset: var(--ring-c); } }
+
+@keyframes banner-in { from { transform: translateY(-100%); } to { transform: none; } }
+@media (hover: hover) { a:hover .logo-orbit, .logo-orbit-auto .logo-orbit { animation: orbit-spin 1.2s var(--ease-soft) 1; } }
+.logo-orbit-slow .logo-orbit { animation: orbit-spin 24s linear infinite; }

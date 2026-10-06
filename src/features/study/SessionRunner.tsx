@@ -121,7 +121,7 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
     : 'Back to focus.';
 
   return (
-    <div className={cn('fixed inset-0 z-40 overflow-y-auto bg-bg transition-colors duration-1000', isBreak && 'study-eclipse')}>
+    <div className={cn('fixed inset-0 z-40 animate-fade-in overflow-y-auto bg-bg transition-colors duration-1000', isBreak && 'study-eclipse')}>
       <div aria-hidden className="study-starfield pointer-events-none fixed inset-0" />
       <div className="relative mx-auto flex min-h-full max-w-3xl flex-col gap-6 px-4 pb-10 pt-[max(1rem,env(safe-area-inset-top))]">
         <header className="flex items-center gap-3">

@@ -12,7 +12,7 @@ export function OfflineBanner() {
   }, []);
   if (!offline) return null;
   return (
-    <div role="status" className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-coral-soft py-1.5 text-sm text-coral backdrop-blur">
+    <div role="status" className="fixed inset-x-0 top-0 z-50 flex animate-[banner-in_320ms_var(--ease-soft)_both] items-center justify-center gap-2 bg-coral-soft py-1.5 text-sm text-coral backdrop-blur">
       <WifiOff className="size-4" aria-hidden /> You're offline — changes will save when you reconnect.
     </div>
   );

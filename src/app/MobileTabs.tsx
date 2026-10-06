@@ -36,12 +36,15 @@ export function MobileTabs() {
             to={to}
             end={to === '/'}
             className={({ isActive }) => cn(
-              'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
+              'relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors duration-200',
               isActive ? 'text-primary' : 'text-ink-muted',
             )}
           >
-            <Icon className="size-5" aria-hidden />
-            <span className="max-w-full truncate px-0.5">{label}</span>
+            {({ isActive }) => (<>
+              {isActive && <span aria-hidden className="absolute inset-x-4 top-0 h-0.5 origin-center animate-grow-x rounded-full bg-primary" />}
+              <Icon className={cn('size-5 transition-[filter] duration-200', isActive && 'drop-shadow-[0_0_6px_var(--primary)]')} aria-hidden />
+              <span className="max-w-full truncate px-0.5">{label}</span>
+            </>)}
           </NavLink>
         ))}
         <button onClick={() => setMoreOpen(true)} className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-muted">
