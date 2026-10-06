@@ -163,6 +163,24 @@ export async function saveAttempt(i: SaveAttemptInput): Promise<QuizAttempt> {
   }).select().single());
 }
 
+export interface ReviewSuggestion { topic: string; notes: { id: string; title: string }[]; decks: { id: string; title: string }[] }
+
+const literalLike = (s: string) => s.replace(/[\\%_]/g, (c) => '\\' + c);
+
+/** Up to two notes and two decks that cover each weak topic. */
+export async function fetchReviewSuggestions(topics: string[]): Promise<ReviewSuggestion[]> {
+  return Promise.all(topics.map(async (topic) => {
+    const notes = unwrap(await supabase.rpc('search_notes', { q: topic }));
+    const cards = unwrap(await supabase.from('flashcards').select('deck_id, decks!inner(id, title)').ilike('topic', literalLike(topic)).limit(20));
+    const decks = [...new Map(cards.map((c) => { const d = c.decks as unknown as { id: string; title: string }; return [d.id, d] as const; })).values()];
+    return { topic, notes: notes.slice(0, 2).map((n) => ({ id: n.id, title: n.title })), decks: decks.slice(0, 2) };
+  }));
+}
+
+export function useReviewSuggestions(topics: string[]) {
+  return useQuery({ queryKey: ['review-suggestions', topics], enabled: topics.length > 0, queryFn: () => fetchReviewSuggestions(topics) });
+}
+
 export function useSaveAnalysis() {
   const qc = useQueryClient();
   return useMutation({

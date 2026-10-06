@@ -1,21 +1,19 @@
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ExternalLink, FileText, Paperclip, Trash2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { friendlyMessage } from '@/lib/errors';
 import { opensInline } from '@/lib/storage';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { useAttachments, useDeleteAttachment, useUploadAttachment, type Attachment } from './attachmentsApi';
+import { attachmentUrl, useAttachments, useDeleteAttachment, useUploadAttachment, type Attachment } from './attachmentsApi';
 
 async function openAttachment(a: Attachment) {
   const inline = opensInline(a.mime_type);
-  const { data, error } = await supabase.storage.from('note-files')
-    .createSignedUrl(a.storage_path, 300, inline ? undefined : { download: a.file_name });
-  if (error) return toast.error(friendlyMessage(error));
-  if (inline) window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-  else window.location.assign(data.signedUrl);
+  let url: string;
+  try { url = await attachmentUrl(a, inline); } catch (e) { toast.error(friendlyMessage(e)); return; }
+  if (inline) window.open(url, '_blank', 'noopener,noreferrer');
+  else window.location.assign(url);
 }
 
 export function AttachmentList({ noteId, editable }: { noteId: string; editable: boolean }) {

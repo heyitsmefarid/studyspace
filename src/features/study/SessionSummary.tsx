@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { RotateCcw, Trash2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { formatDuration } from '@/lib/dates';
 import { useCountUp } from '@/lib/countUp';
 import { friendlyMessage } from '@/lib/errors';
@@ -14,7 +14,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { useXpSince } from '@/features/gamification/api';
 import { effectiveStreak, todayInZone, DEFAULT_TZ } from '@/features/gamification/streak';
 import { subjectById, useSubjects } from '@/features/subjects/api';
-import { taskKeys } from '@/features/planner/api';
+import { completeTaskOccurrence, taskKeys } from '@/features/planner/api';
 import { saveStudySession } from './api';
 import type { FinishedStudy } from './finish';
 
@@ -51,9 +51,9 @@ export function SessionSummary({ data, onSaved, onAgain, onDiscard }: {
         focusSeconds: data.focusSeconds, cardsStudied: data.counters.cards, questionsAnswered: data.counters.questions, correctAnswers: data.counters.correct,
       });
       if (data.taskId && data.taskDate) {
-        // Completing the planner task is best-effort; an existing completion is fine.
-        await supabase.from('task_completions')
-          .upsert({ task_id: data.taskId, user_id: user!.id, occurrence_date: data.taskDate }, { onConflict: 'task_id,occurrence_date', ignoreDuplicates: true });
+        // The session is already saved, so a failed tick only needs a nudge — never a re-save.
+        try { await completeTaskOccurrence(data.taskId, user!.id, data.taskDate); }
+        catch (e) { toast.error(`Session saved, but the planner task wasn't ticked off — mark it done in the planner. (${friendlyMessage(e)})`); }
       }
       await refreshProfile();
       for (const key of [['sessions'], ['xp-since'], ['focus-total'], taskKeys.all]) void qc.invalidateQueries({ queryKey: key });

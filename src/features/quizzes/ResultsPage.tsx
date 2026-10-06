@@ -1,15 +1,14 @@
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
 import { Check, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { formatDuration } from '@/lib/dates';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ProgressRing } from '@/components/ui/Progress';
-import { useAttempt } from './api';
+import { useAttempt, useReviewSuggestions } from './api';
+import { useAttemptXp } from '@/features/gamification/api';
 import { classifyTopics, type AnswerRecord, type TopicStat } from './scoring';
 import { AskNovaButton } from '@/features/ai/AskNovaButton';
 import { ResultsSky } from './ResultsSky';
@@ -17,16 +16,7 @@ import { useCountUp } from '@/lib/countUp';
 import { AnalysisPanel } from './AnalysisPanel';
 
 function ReviewSuggestions({ topics }: { topics: string[] }) {
-  const q = useQuery({
-    queryKey: ['review-suggestions', topics],
-    enabled: topics.length > 0,
-    queryFn: async () => Promise.all(topics.map(async (topic) => {
-      const notes = (await supabase.rpc('search_notes', { q: topic })).data ?? [];
-      const cards = (await supabase.from('flashcards').select('deck_id, decks!inner(id, title)').ilike('topic', topic).limit(20)).data ?? [];
-      const decks = [...new Map(cards.map((c) => { const d = c.decks as unknown as { id: string; title: string }; return [d.id, d]; })).values()];
-      return { topic, notes: notes.slice(0, 2), decks: decks.slice(0, 2) };
-    })),
-  });
+  const q = useReviewSuggestions(topics);
   if (topics.length === 0) return null;
   return (
     <Card>
@@ -56,6 +46,7 @@ export default function ResultsPage() {
   const breakdown = useMemo(() => (q.data?.topic_breakdown ?? {}) as unknown as Record<string, TopicStat>, [q.data]);
   const topics = useMemo(() => classifyTopics(breakdown), [breakdown]);
   const shownScore = useCountUp(q.data?.score ?? 0);
+  const xp = useAttemptXp(q.data?.id);
 
   if (q.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-32" /><Skeleton className="h-60" /></div>;
   if (!q.data) return <EmptyState title="Result not found" action={<Link to="/quizzes" className="text-primary underline">Back to quizzes</Link>} />;
@@ -72,7 +63,7 @@ export default function ResultsPage() {
           <p className="text-sm text-ink-muted">{a.title}</p>
           <p className="font-display text-5xl tabular">{shownScore}/{a.total}</p>
           <p className="mt-1 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-muted sm:justify-start">
-            {formatDuration(a.duration_seconds)} · <Badge>{a.mode}</Badge> <Badge tone="gold">+20 XP</Badge>
+            {formatDuration(a.duration_seconds)} · <Badge>{a.mode}</Badge>{xp.data ? <> <Badge tone="gold">+{xp.data} XP</Badge></> : null}
           </p>
         </div>
       </Card>

@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { BookOpen, FileText, Layers, ListChecks, Timer } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { supabase } from '@/lib/supabase';
-import { unwrapMaybe } from '@/lib/errors';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select } from '@/components/ui/Field';
@@ -15,7 +12,7 @@ import { SubjectPicker } from '@/features/subjects/SubjectPicker';
 import { useDecks, useDeckStats } from '@/features/flashcards/api';
 import { useQuizzes } from '@/features/quizzes/api';
 import { NotePicker } from '@/features/notes/NotePicker';
-import type { Task } from '@/features/planner/api';
+import { useTask, type Task } from '@/features/planner/api';
 import { chimeEnabled, setChimeEnabled } from './chime';
 import type { TimerMode } from './timer';
 import type { StartStudy } from './useStudySession';
@@ -148,11 +145,7 @@ function SetupForm({ task, initial, onStart }: { task: Task | null; initial?: Se
 /** Loads the planner task from `?task=` first so the form can start from its subject and length. */
 export function SessionSetup({ taskId, initial, onStart }: { taskId: string | null; initial?: SetupChoices; onStart: (s: StartStudy, choices: SetupChoices) => void }) {
   const { user } = useAuth();
-  const task = useQuery({
-    queryKey: ['study-task', taskId],
-    enabled: Boolean(taskId),
-    queryFn: async () => unwrapMaybe(await supabase.from('tasks').select('*').eq('id', taskId!).maybeSingle()),
-  });
+  const task = useTask(taskId);
   if (taskId && task.isPending) return <div className="mx-auto max-w-xl"><Skeleton className="h-96" /></div>;
   // Only my own tasks can be linked (study_sessions.task_id must be mine); a partner's shared task starts a free session.
   const t = task.data && task.data.owner_id === user?.id ? task.data : null;

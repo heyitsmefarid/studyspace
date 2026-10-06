@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { unwrap } from '@/lib/errors';
+import { unwrap, unwrapMaybe } from '@/lib/errors';
 import { fetchAll } from '@/lib/fetchAll';
 import { useAuth } from '@/features/auth/AuthProvider';
 
@@ -11,6 +11,16 @@ export function useXpSince(sinceIso: string | null) {
     enabled: Boolean(user && sinceIso),
     queryFn: async () => unwrap(await supabase.from('xp_events').select('amount').gte('created_at', sinceIso!)).reduce((s, r) => s + r.amount, 0),
   }).data ?? 0;
+}
+
+/** XP the server awarded for a finished quiz attempt — 0 when the daily cap held it back. */
+export async function attemptXp(attemptId: string): Promise<number> {
+  const row = unwrapMaybe(await supabase.from('xp_events').select('amount').eq('reason', 'quiz_completed').eq('ref', attemptId).maybeSingle());
+  return row?.amount ?? 0;
+}
+
+export function useAttemptXp(attemptId: string | undefined) {
+  return useQuery({ queryKey: ['xp-attempt', attemptId], enabled: Boolean(attemptId), queryFn: () => attemptXp(attemptId!) });
 }
 
 export function useTotalFocusSeconds(userId: string | undefined) {

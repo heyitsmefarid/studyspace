@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parseISO, startOfDay } from 'date-fns';
 import { supabase, type Tables, type TablesInsert } from '@/lib/supabase';
-import { assertOk, unwrap } from '@/lib/errors';
+import { assertOk, unwrap, unwrapMaybe } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { expandOccurrences, occurrenceKey, type Occurrence } from './recurrence';
 import { toTaskRow, type TaskForm, type TaskKind } from './taskForm';
@@ -111,6 +111,20 @@ export function useDeleteTask() {
     mutationFn: async (id: string) => assertOk(await supabase.from('tasks').delete().eq('id', id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
   });
+}
+
+export function useTask(taskId: string | null) {
+  return useQuery({
+    queryKey: ['task', taskId],
+    enabled: Boolean(taskId),
+    queryFn: async () => unwrapMaybe(await supabase.from('tasks').select('*').eq('id', taskId!).maybeSingle()),
+  });
+}
+
+/** Ticks off one occurrence; an existing completion already counts as done. */
+export async function completeTaskOccurrence(taskId: string, userId: string, date: string): Promise<void> {
+  assertOk(await supabase.from('task_completions')
+    .upsert({ task_id: taskId, user_id: userId, occurrence_date: date }, { onConflict: 'task_id,occurrence_date', ignoreDuplicates: true }));
 }
 
 export function useToggleComplete() {

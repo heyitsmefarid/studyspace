@@ -18,6 +18,14 @@ export async function uploadNoteFile(noteId: string, uid: string, file: File, ki
   }).select().single());
 }
 
+/** A 5-minute signed link; files that can't render safely in the browser download under their own name. */
+export async function attachmentUrl(a: Attachment, inline: boolean): Promise<string> {
+  const { data, error } = await supabase.storage.from('note-files')
+    .createSignedUrl(a.storage_path, 300, inline ? undefined : { download: a.file_name });
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 export function useAttachments(noteId: string) {
   return useQuery({
     queryKey: ['attachments', noteId],
