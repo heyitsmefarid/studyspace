@@ -64,3 +64,33 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
   .flip-back { position: static; transform: none; }
   .flip-inner:not([data-revealed="true"]) .flip-back { display: none; }
 }
+
+/* study mode: calm starfield; breaks shift towards teal ("eclipse") */
+.study-starfield {
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, var(--ink-faint), transparent 60%),
+    radial-gradient(1px 1px at 72% 12%, var(--ink-faint), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 64%, var(--ink-faint), transparent 60%),
+    radial-gradient(1px 1px at 86% 72%, var(--ink-faint), transparent 60%),
+    radial-gradient(1px 1px at 22% 86%, var(--ink-faint), transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 34%, var(--gold), transparent 60%),
+    radial-gradient(700px 420px at 50% 30%, var(--primary-soft), transparent 70%);
+  opacity: 0.7;
+}
+.study-eclipse .study-starfield {
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, var(--ink-faint), transparent 60%),
+    radial-gradient(1px 1px at 72% 12%, var(--ink-faint), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 64%, var(--ink-faint), transparent 60%),
+    radial-gradient(700px 420px at 50% 30%, var(--teal-soft), transparent 70%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .study-starfield { animation: star-drift 90s linear infinite alternate; }
+  .animate-star-arc { animation: star-arc 1.6s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes star-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-2%, 1.5%, 0); } }
+  @keyframes star-arc {
+    0% { transform: translate(-120px, 80px) scale(.4); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: none; opacity: 1; }
+  }
+}
