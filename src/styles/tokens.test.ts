@@ -33,3 +33,15 @@ describe.each([
     expect(ratio(t['primary-ink']!, t['primary']!)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+// Chart marks (validated with the dataviz palette script: band, chroma, CVD and contrast) need ≥ 3:1 on chart surfaces.
+describe.each([
+  ['daybreak', ':root'],
+  ['night', '[data-theme="night"]'],
+])('%s chart tokens', (_name, selector) => {
+  const t = block(selector);
+  it.each(['chart-1', 'chart-2'].flatMap((fg) => ['surface', 'surface-2'].map((bg) => [fg, bg])))('%s on %s ≥ 3:1', (fg, bg) => {
+    expect(t[fg], `${fg} missing`).toBeDefined();
+    expect(ratio(t[fg]!, t[bg]!)).toBeGreaterThanOrEqual(3);
+  });
+});

@@ -22,6 +22,8 @@
   --star-me: #2B6CB0;
   --star-partner: #B83A78;
   --sky-star: #1B2150;
+  --chart-1: #5443C9;
+  --chart-2: #008A73;
   --glow: 0 1px 0 0 rgb(27 33 80 / 0.04), 0 10px 30px -18px rgb(27 33 80 / 0.35);
   color-scheme: light;
 }
@@ -49,6 +51,8 @@
   --star-me: #7CC4FF;
   --star-partner: #FF9ECF;
   --sky-star: #FFFFFF;
+  --chart-1: #8C7DFF;
+  --chart-2: #1FA48B;
   --glow: 0 0 0 1px rgb(232 236 255 / 0.06), 0 12px 40px -16px rgb(169 156 255 / 0.30);
   color-scheme: dark;
 }
@@ -74,6 +78,8 @@
   --color-coral-soft: var(--coral-soft);
   --color-star-me: var(--star-me);
   --color-star-partner: var(--star-partner);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
   --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
   --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 1.25rem;
