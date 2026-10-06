@@ -10,6 +10,7 @@ export function PasswordSection() {
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -21,6 +22,8 @@ export function PasswordSection() {
     if (err) return setError(friendlyMessage(err));
     setPassword(''); setConfirm('');
     toast.success('Password updated ✦');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1600);
   }
 
   return (
@@ -32,7 +35,7 @@ export function PasswordSection() {
         {(id) => <Input id={id} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />}
       </Field>
       {error && <p role="alert" className="text-sm text-coral">{error}</p>}
-      <Button type="submit" loading={busy} className="self-start">Update password</Button>
+      <Button type="submit" loading={busy} done={saved} className="self-start">Update password</Button>
     </form>
   );
 }

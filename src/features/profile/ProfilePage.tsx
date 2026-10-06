@@ -27,7 +27,7 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl">
       <Card className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
-        <Avatar profile={p} size={96} />
+        <span className="animate-pop-in rounded-full p-1 shadow-[0_0_0_2px_var(--primary-soft),0_0_24px_var(--primary-soft)]"><Avatar profile={p} size={96} /></span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             <h1 className="font-display text-3xl">{p.display_name || 'Unnamed star'}</h1>
@@ -42,7 +42,7 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="stagger mt-4 grid gap-4 sm:grid-cols-3">
         <Card><p className="text-sm text-ink-muted">Streak</p><div className="mt-2"><Comet streak={streak} size="sm" /></div></Card>
         <Card><p className="text-sm text-ink-muted">Total focus</p><p className="mt-1 font-display text-2xl tabular">{formatDuration(focus)}</p></Card>
         <Card><p className="text-sm text-ink-muted">Longest streak</p><p className="mt-1 font-display text-2xl tabular">{p.longest_streak} days</p></Card>

@@ -31,10 +31,10 @@ export default function SettingsPage() {
   const logout = async () => { await signOut(); navigate('/login', { replace: true }); };
 
   const list = (
-    <nav aria-label="Settings sections" className="flex flex-col gap-1">
+    <nav aria-label="Settings sections" className="stagger flex flex-col gap-1 [--stagger-step:30ms]">
       {SECTIONS.map(({ id, label, icon: Icon }) => (
         <Link key={id} to={`/settings/${id}`}
-          className={cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium',
+          className={cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-200',
             active?.id === id ? 'bg-primary-soft text-primary' : 'text-ink-muted hover:bg-surface-2 hover:text-ink')}>
           <Icon className="size-4" aria-hidden /> <span className="flex-1">{label}</span>
           <ChevronRight className="size-4 md:hidden" aria-hidden />
@@ -53,7 +53,7 @@ export default function SettingsPage() {
         <div className={cn(active && 'hidden md:block')}>{list}</div>
         <div className={cn(!active && 'hidden md:block')}>
           {active ? (
-            <Card>
+            <Card key={active.id} className="animate-rise-in">
               <Link to="/settings" className="mb-3 inline-flex items-center gap-1 text-sm text-ink-muted md:hidden"><ChevronLeft className="size-4" /> Settings</Link>
               <h2 className="mb-4 font-display text-xl">{active.label}</h2>
               {active.render()}

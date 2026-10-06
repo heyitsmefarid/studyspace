@@ -78,7 +78,7 @@ export default function StatsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title="Stats" subtitle="How your sky has grown." />
 
-      <section aria-label="Totals" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <section aria-label="Totals" className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatTile label="Total study time" value={formatDuration(data.totalFocusSeconds)} sub="All time" />
         <StatTile label="This week" value={formatMinutes(minutesThisWeek(data.sessions, now))} sub="Since Monday" />
         <StatTile label="Flashcards studied" value={data.reviewCount.toLocaleString()} sub="Reviews, all time" />

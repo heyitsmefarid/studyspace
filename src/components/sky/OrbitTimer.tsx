@@ -15,6 +15,13 @@ export function OrbitTimer({ progress, phase, remaining, elapsed, completed, siz
         <circle cx="150" cy="150" r={r} fill="none" stroke="var(--line-strong)" strokeWidth="2" strokeDasharray="2 6" />
         <circle cx="150" cy="150" r={r} fill="none" stroke={isBreak ? 'var(--teal)' : 'var(--primary)'} strokeWidth="3"
           strokeDasharray={`${c * progress} ${c}`} transform="rotate(-90 150 150)" strokeLinecap="round" />
+        {progress > 0.01 && (() => {
+          // A short fading trail along the orbit behind the planet.
+          const end = progress * 2 * Math.PI - Math.PI / 2;
+          const start = Math.max(-Math.PI / 2, end - 0.06 * 2 * Math.PI);
+          const p = (a: number) => `${150 + Math.cos(a) * r} ${150 + Math.sin(a) * r}`;
+          return <path d={`M ${p(start)} A ${r} ${r} 0 0 1 ${p(end)}`} fill="none" stroke={isBreak ? 'var(--teal)' : 'var(--gold)'} strokeWidth="6" strokeLinecap="round" opacity=".25" />;
+        })()}
         <g transform={`rotate(${angle + 90} 150 150)`}>
           <circle cx="150" cy={150 - r} r="9" fill={isBreak ? 'var(--teal)' : 'var(--gold)'} style={{ filter: 'drop-shadow(0 0 10px var(--gold))' }} />
         </g>
@@ -24,7 +31,7 @@ export function OrbitTimer({ progress, phase, remaining, elapsed, completed, siz
         })}
       </svg>
       <div className="relative text-center" aria-live="polite">
-        <div className="text-sm uppercase tracking-[0.2em] text-ink-muted">{LABEL[phase]}</div>
+        <div key={phase} className="animate-pop-in text-sm uppercase tracking-[0.2em] text-ink-muted">{LABEL[phase]}</div>
         <div className="tabular font-display text-6xl">{formatClock(remaining ?? elapsed)}</div>
         <div className="text-xs text-ink-faint">{completed} {completed === 1 ? 'moon' : 'moons'}</div>
       </div>

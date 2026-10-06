@@ -19,9 +19,10 @@ export function ColorSwatches({ value, onChange, colors = SUBJECT_COLORS }: { va
           aria-checked={value.toUpperCase() === c.toUpperCase()}
           aria-label={c}
           onClick={() => onChange(c)}
-          className="grid size-9 place-items-center rounded-full border border-line aria-checked:border-ink"
+          className="grid size-9 place-items-center rounded-full border border-line transition-[scale,border-color] duration-200 ease-float hover:scale-110 aria-checked:scale-110 aria-checked:border-ink"
         >
-          <span className="size-5 rounded-full" style={{ background: c, boxShadow: `0 0 10px ${c}` }} />
+          <span className="size-5 rounded-full transition-shadow duration-300"
+            style={{ background: c, boxShadow: value.toUpperCase() === c.toUpperCase() ? `0 0 14px 3px ${c}` : `0 0 10px ${c}` }} />
         </button>
       ))}
     </div>

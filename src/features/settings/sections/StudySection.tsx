@@ -22,6 +22,7 @@ export function StudySection() {
   const { preferences } = useAuth();
   const update = useUpdatePreferences();
   const [study, setStudy] = useState<Study>(preferences.study);
+  const [saved, setSaved] = useState(false);
 
   const toggleTime = (t: (typeof TIMES)[number]) => setStudy((s) => {
     const has = s.preferredTimes.includes(t);
@@ -51,8 +52,8 @@ export function StudySection() {
           ))}
         </div>
       </div>
-      <Button className="self-start" loading={update.isPending}
-        onClick={async () => { await update.mutateAsync({ study }); toast.success('Study preferences saved'); }}>
+      <Button className="self-start" loading={update.isPending} done={saved}
+        onClick={async () => { await update.mutateAsync({ study }); toast.success('Study preferences saved'); setSaved(true); setTimeout(() => setSaved(false), 1600); }}>
         Save
       </Button>
     </div>

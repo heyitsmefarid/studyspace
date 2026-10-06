@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, Responsiv
 import { Table2, BarChart3 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { SubjectDot } from '@/features/subjects/SubjectDot';
+import { usePrefersReducedMotion } from '@/lib/motion';
 
 // Mark specs (dataviz skill): bars ≤ 24px with a 4px rounded data-end, 2px lines, ≥ 8px markers with a 2px
 // surface ring, solid hairline grid. Colours are the validated --chart-1 / --chart-2 tokens; text wears ink tokens.
@@ -65,6 +66,7 @@ export function ChartCard({ title, subtitle, table, empty, children }: {
 }
 
 export function FocusBars({ data }: { data: { label: string; minutes: number }[] }) {
+  const reduce = usePrefersReducedMotion();
   const hours = Math.max(0, ...data.map((d) => d.minutes)) > 120;
   const rows = data.map((d) => ({ label: d.label, value: hours ? Math.round((d.minutes / 60) * 10) / 10 : d.minutes, minutes: d.minutes }));
   return (
@@ -76,7 +78,7 @@ export function FocusBars({ data }: { data: { label: string; minutes: number }[]
           <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} width={36}
             tickFormatter={(v: number) => (hours ? `${v}h` : `${v}`)} />
           <Tooltip cursor={{ fill: 'var(--surface-2)' }} content={(p) => <ChartTooltip active={p.active} payload={p.payload} label={p.label} format={(_v, row) => formatMinutes((row as { minutes: number }).minutes)} />} />
-          <Bar dataKey="value" name="Focus" fill="var(--chart-1)" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
+          <Bar dataKey="value" name="Focus" fill="var(--chart-1)" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={!reduce} animationDuration={700} animationEasing="ease-out" />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -84,6 +86,7 @@ export function FocusBars({ data }: { data: { label: string; minutes: number }[]
 }
 
 export function AccuracyLine({ data }: { data: { label: string; accuracy: number }[] }) {
+  const reduce = usePrefersReducedMotion();
   const rows = data.map((d) => ({ label: d.label, value: Math.round(d.accuracy * 100) }));
   return (
     <div className="h-64 w-full">
@@ -97,7 +100,7 @@ export function AccuracyLine({ data }: { data: { label: string; accuracy: number
           <Tooltip cursor={{ stroke: 'var(--ink-faint)', strokeWidth: 1 }} content={(p) => <ChartTooltip active={p.active} payload={p.payload} label={p.label} format={(v) => `${v}%`} />} />
           <Line type="linear" dataKey="value" name="Accuracy" stroke="var(--chart-2)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
             dot={{ r: 4, fill: 'var(--chart-2)', stroke: 'var(--surface)', strokeWidth: 2 }}
-            activeDot={{ r: 6, fill: 'var(--chart-2)', stroke: 'var(--surface)', strokeWidth: 2 }} isAnimationActive={false} />
+            activeDot={{ r: 6, fill: 'var(--chart-2)', stroke: 'var(--surface)', strokeWidth: 2 }} isAnimationActive={!reduce} animationDuration={700} animationEasing="ease-out" />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -117,7 +120,7 @@ export function SubjectBars({ data }: { data: { id: string; name: string; color:
             <span className="shrink-0 text-ink-muted tabular">{formatMinutes(d.minutes)}</span>
           </div>
           <div className="h-3 w-full" aria-hidden>
-            <div className="h-full rounded-r-[4px] bg-chart-1" style={{ width: `${Math.max(1.5, (d.minutes / max) * 100)}%` }} />
+            <div className="h-full origin-left animate-grow-x rounded-r-[4px] bg-chart-1 transition-[width] duration-500 ease-soft" style={{ width: `${Math.max(1.5, (d.minutes / max) * 100)}%` }} />
           </div>
         </li>
       ))}

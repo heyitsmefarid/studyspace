@@ -20,6 +20,7 @@ export function ProfileSection() {
   const [color, setColor] = useState(profile?.star_color ?? STAR_COLORS[0]!);
   const [tz, setTz] = useState(profile?.timezone ?? 'Asia/Manila');
   const [uploading, setUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const zones = useMemo(() => {
     try { return (Intl as unknown as { supportedValuesOf(k: string): string[] }).supportedValuesOf('timeZone'); } catch { return [tz]; }
@@ -48,6 +49,8 @@ export function ProfileSection() {
   async function save() {
     await update.mutateAsync({ display_name: name.trim(), bio: bio.trim(), star_color: color, timezone: tz });
     toast.success('Profile saved');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1600);
   }
 
   return (
@@ -61,7 +64,7 @@ export function ProfileSection() {
       <Field label="Bio" hint={`${bio.length}/280`}>{(id) => <Textarea id={id} maxLength={280} value={bio} onChange={(e) => setBio(e.target.value)} />}</Field>
       <div><p className="mb-2 text-sm font-medium">Star colour</p><ColorSwatches value={color} onChange={setColor} colors={STAR_COLORS} /></div>
       <Field label="Timezone">{(id) => <Select id={id} value={tz} onChange={(e) => setTz(e.target.value)}>{zones.map((z) => <option key={z}>{z}</option>)}</Select>}</Field>
-      <Button onClick={save} loading={update.isPending} disabled={!name.trim()} className="self-start">Save profile</Button>
+      <Button onClick={save} loading={update.isPending} done={saved} disabled={!name.trim()} className="self-start">Save profile</Button>
     </div>
   );
 }

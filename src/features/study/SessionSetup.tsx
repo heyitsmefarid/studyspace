@@ -94,7 +94,7 @@ function SetupForm({ task, initial, onStart }: { task: Task | null; initial?: Se
         <h1 className="font-display text-3xl">Ready to add a star?</h1>
         {task && <p className="mt-1 text-ink-muted">From your planner: <strong className="text-ink">{task.title}</strong></p>}
       </header>
-      <Card className="flex flex-col gap-5">
+      <Card className="flex animate-rise-in flex-col gap-5">
         <div className="flex flex-col gap-1.5"><p className="text-sm font-medium">Subject</p><SubjectPicker value={c.subjectId} onChange={(v) => set('subjectId', v)} /></div>
 
         <div className="flex flex-col gap-2">
