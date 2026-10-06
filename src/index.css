@@ -124,7 +124,8 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
   --animate-shimmer-text: shimmer-text 4s linear infinite;
 }
 
-@keyframes page-in { from { opacity: 0; transform: translateY(8px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+/* Opacity only: a transform/filter here would trap position:fixed overlays (study runner) inside the page while it runs. */
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.97); } }

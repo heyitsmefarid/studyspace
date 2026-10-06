@@ -12,3 +12,14 @@ export function createExitGate(delayMs: number) {
     get busy() { return busy; },
   };
 }
+
+/**
+ * Shows a card's exit (`setLeaving(value)`), then clears it and commits the grade once the gate lets it through.
+ * Order matters: with an instant gate (reduced motion) the callback runs synchronously, so `leaving` must be set
+ * before it — never after — or the next card mounts already "leaving" and stays invisible.
+ */
+export function runExit<T>(gate: ReturnType<typeof createExitGate>, value: T, setLeaving: (v: T | null) => void, commit: (v: T) => void): boolean {
+  if (gate.busy) return false;
+  setLeaving(value);
+  return gate.run(() => { setLeaving(null); commit(value); });
+}

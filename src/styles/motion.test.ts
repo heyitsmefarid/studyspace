@@ -29,6 +29,14 @@ describe('motion foundation', () => {
     'entrance %s fills backwards, not both', (name) => {
       expect(css).toMatch(new RegExp(String.raw`--animate-${name}: ${name} [^;]*backwards;`));
     });
+  // Final review I2: transform/filter on the page wrapper makes it the containing block for position:fixed
+  // descendants (study runner, jump-to-latest pill), clipping them while it runs. The page entrance is opacity only.
+  it('page entrance animates opacity only', () => {
+    const body = /@keyframes page-in\s*\{([\s\S]*?)\}\s*\}/.exec(css)?.[1] ?? '';
+    expect(body).toContain('opacity');
+    expect(body).not.toMatch(/transform|filter|translate|scale/);
+  });
+
   it('stagger entrance fills backwards', () => {
     expect(css).toMatch(/\.stagger > \*\s*\{[^}]*animation: rise-in [^;]*backwards;/);
   });

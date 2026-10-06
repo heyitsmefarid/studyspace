@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { friendlyMessage } from '@/lib/errors';
-import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
+import { replayAnimation } from '@/lib/replayAnimation';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Field';
 import { useAuth } from './AuthProvider';
@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [resetMode, setResetMode] = useState(false);
   const [resetMsg, setResetMsg] = useState<string | null>(null);
-  const [shakeKey, setShakeKey] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
   const [burst, setBurst] = useState(false);
 
   if (!loading && session && profile && !burst) return <Navigate to={params.get('next') ?? '/'} replace />;
@@ -35,7 +35,7 @@ export default function LoginPage() {
       navigate(params.get('next') ?? '/', { replace: true });
     } catch (err) {
       setError(friendlyMessage(err));
-      setShakeKey((k) => k + 1);
+      replayAnimation(formRef.current, 'animate-shake');
     } finally {
       setBusy(false);
     }
@@ -56,7 +56,7 @@ export default function LoginPage() {
       {params.get('error') === 'no-profile' && (
         <p role="alert" className="mt-3 rounded-xl bg-coral-soft px-3 py-2 text-sm text-coral">This account isn't part of StudySpace.</p>
       )}
-      <form key={shakeKey} onSubmit={resetMode ? onReset : onSubmit} className={cn('mt-5 flex flex-col gap-4', shakeKey > 0 && 'animate-shake')}>
+      <form ref={formRef} onSubmit={resetMode ? onReset : onSubmit} className="mt-5 flex flex-col gap-4">
         <Field label="Email">
           {(id) => <Input id={id} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}
         </Field>

@@ -11,7 +11,7 @@ import { completeFlashcardSession } from './api';
 import { FlipCard } from './FlipCard';
 import { ReviewSummary, type ReviewSummaryData } from './ReviewSummary';
 import { useReviewSession } from './useReviewSession';
-import { createExitGate } from './exitGate';
+import { createExitGate, runExit } from './exitGate';
 import type { Grade } from './srs';
 
 const GRADES: { g: Grade; label: string; cls: string }[] = [
@@ -51,7 +51,7 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
 
   /** Grades after the card's exit animation; extra presses during the exit are ignored. */
   function gradeOut(g: Grade) {
-    if (gate.run(() => { setLeaving(null); grade(g); })) setLeaving(g);
+    runExit(gate, g, setLeaving, grade);
   }
 
   function choose(o: string) {

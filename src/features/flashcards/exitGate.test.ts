@@ -28,3 +28,31 @@ describe('createExitGate', () => {
     expect(gate.busy).toBe(false);
   });
 });
+
+// Final review C1: with reduced motion the gate runs synchronously, so the caller must not set "leaving" after it.
+describe('runExit', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('ends on leaving = null when the exit is instant (reduced motion)', async () => {
+    const { runExit } = await import('./exitGate');
+    const leaving: (number | null)[] = [];
+    const commit = vi.fn();
+    expect(runExit(createExitGate(0), 2, (v) => leaving.push(v), commit)).toBe(true);
+    expect(leaving.at(-1)).toBeNull();
+    expect(commit).toHaveBeenCalledExactlyOnceWith(2);
+  });
+
+  it('shows the exit, then commits once and clears it; presses during the exit are ignored', async () => {
+    const { runExit } = await import('./exitGate');
+    const gate = createExitGate(220);
+    const leaving: (number | null)[] = [];
+    const commit = vi.fn();
+    runExit(gate, 2, (v) => leaving.push(v), commit);
+    expect(runExit(gate, 3, (v) => leaving.push(v), commit)).toBe(false);
+    expect(leaving).toEqual([2]);
+    vi.advanceTimersByTime(220);
+    expect(leaving).toEqual([2, null]);
+    expect(commit).toHaveBeenCalledExactlyOnceWith(2);
+  });
+});

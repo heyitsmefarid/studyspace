@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { supabase } from '@/lib/supabase';
 import { friendlyMessage } from '@/lib/errors';
-import { cn } from '@/lib/cn';
 import { prefersReducedMotion } from '@/lib/motion';
+import { replayAnimation } from '@/lib/replayAnimation';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Field';
 import { useAuth } from './AuthProvider';
@@ -19,7 +19,8 @@ export default function SignUpPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
-  const [shakeKey, setShakeKey] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+  const shake = () => replayAnimation(formRef.current, 'animate-shake');
   const [burst, setBurst] = useState(false);
 
   if (!loading && session && profile && !burst) return <Navigate to="/" replace />;
@@ -28,7 +29,7 @@ export default function SignUpPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     const v = validateSignUp(form);
-    if (!v.ok) { setErrors(v.errors); setShakeKey((k) => k + 1); return; }
+    if (!v.ok) { setErrors(v.errors); shake(); return; }
     setErrors({}); setError(null); setBusy(true);
     const { data, error: err } = await supabase.auth.signUp({
       email: v.value.email,
@@ -36,7 +37,7 @@ export default function SignUpPage() {
       options: { emailRedirectTo: `${location.origin}/login` },
     });
     setBusy(false);
-    if (err) { setError(friendlyMessage(err)); setShakeKey((k) => k + 1); return; }
+    if (err) { setError(friendlyMessage(err)); shake(); return; }
     if (data.session) {
       setBurst(true);
       await refreshProfile();
@@ -61,7 +62,7 @@ export default function SignUpPage() {
         <>
           <h1 className="mt-6 font-display text-2xl">Create your star</h1>
           <p className="mt-1 text-sm text-ink-muted">StudySpace is for two. The first account opens the sky; the second needs an invite from the first.</p>
-          <form key={shakeKey} onSubmit={onSubmit} className={cn('mt-5 flex flex-col gap-4', shakeKey > 0 && 'animate-shake')} noValidate>
+          <form ref={formRef} onSubmit={onSubmit} className="mt-5 flex flex-col gap-4" noValidate>
             <Field label="Email" error={errors.email}>
               {(id) => <Input id={id} type="email" autoComplete="email" invalid={Boolean(errors.email)} value={form.email} onChange={(e) => set('email')(e.target.value)} />}
             </Field>
