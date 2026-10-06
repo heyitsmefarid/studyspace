@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RotateCcw, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatDuration } from '@/lib/dates';
+import { useCountUp } from '@/lib/countUp';
 import { friendlyMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -16,23 +17,6 @@ import { subjectById, useSubjects } from '@/features/subjects/api';
 import { taskKeys } from '@/features/planner/api';
 import { saveStudySession } from './api';
 import type { FinishedStudy } from './finish';
-
-function useCountUp(target: number): number {
-  const [shown, setShown] = useState(0);
-  useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const t0 = performance.now();
-    let raf = 0;
-    const step = (t: number) => {
-      const k = reduce ? 1 : Math.min(1, (t - t0) / 900);
-      setShown(Math.round(target * (1 - (1 - k) ** 3)));
-      if (k < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target]);
-  return shown;
-}
 
 function NewStar() {
   const dim: [number, number][] = [[30, 70], [70, 30], [120, 60], [170, 25], [210, 75], [250, 40]];

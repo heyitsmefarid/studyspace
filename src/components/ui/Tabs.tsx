@@ -11,7 +11,7 @@ export function Tabs<T extends string>({ value, onValueChange, items, className,
           <R.Trigger
             key={it.value}
             value={it.value}
-            className="h-9 shrink-0 rounded-lg px-3 text-sm font-semibold text-ink-muted transition data-[state=active]:bg-primary-soft data-[state=active]:text-primary"
+            className="h-9 shrink-0 rounded-lg px-3 text-sm font-semibold text-ink-muted transition duration-200 ease-soft data-[state=active]:animate-pop-in data-[state=active]:bg-primary-soft data-[state=active]:text-primary"
           >
             {it.label}
           </R.Trigger>

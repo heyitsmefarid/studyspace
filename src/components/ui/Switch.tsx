@@ -13,9 +13,9 @@ export function Switch({ checked, onCheckedChange, label, hint }: { checked: boo
         id={id}
         checked={checked}
         onCheckedChange={onCheckedChange}
-        className="relative h-7 w-12 shrink-0 rounded-full border border-line bg-surface-2 transition data-[state=checked]:bg-primary"
+        className="relative h-7 w-12 shrink-0 rounded-full border border-line bg-surface-2 transition-[background-color,box-shadow] duration-200 ease-soft data-[state=checked]:bg-primary data-[state=checked]:shadow-[0_0_12px_var(--primary-soft)]"
       >
-        <R.Thumb className="block size-5 translate-x-1 rounded-full bg-ink shadow transition-transform data-[state=checked]:translate-x-6 data-[state=checked]:bg-primary-ink" />
+        <R.Thumb className="block size-5 translate-x-1 rounded-full bg-ink shadow transition-transform duration-300 ease-float data-[state=checked]:translate-x-6 data-[state=checked]:bg-primary-ink" />
       </R.Root>
     </div>
   );

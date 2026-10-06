@@ -1,7 +1,7 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
-const control = 'w-full rounded-xl border border-line bg-surface-2 px-3 text-ink placeholder:text-ink-faint focus:border-primary focus:outline-none aria-[invalid=true]:border-coral';
+const control = 'w-full rounded-xl border border-line bg-surface-2 px-3 text-ink placeholder:text-ink-faint transition-[border-color,box-shadow] duration-200 ease-soft focus:border-primary focus:shadow-[0_0_0_4px_var(--primary-soft)] focus:outline-none aria-[invalid=true]:border-coral';
 
 /** Label + control + hint/error. `children` receives the generated id for the control. */
 export function Field({ label, hint, error, children, className }: {
