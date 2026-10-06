@@ -51,3 +51,16 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
   .prose-ss hr { border-color: var(--line-strong); }
   .prose-ss p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--ink-faint); float: left; height: 0; pointer-events: none; }
 }
+
+/* flashcard flip */
+.flip { perspective: 1200px; }
+.flip-inner { position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(.2,.8,.2,1); }
+.flip-inner[data-revealed="true"] { transform: rotateY(180deg); }
+.flip-face { backface-visibility: hidden; }
+.flip-back { position: absolute; inset: 0; transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner { transition: none; transform: none !important; }
+  .flip-inner[data-revealed="true"] .flip-front { display: none; }
+  .flip-back { position: static; transform: none; }
+  .flip-inner:not([data-revealed="true"]) .flip-back { display: none; }
+}
