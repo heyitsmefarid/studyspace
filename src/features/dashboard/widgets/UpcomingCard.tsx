@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { differenceInCalendarDays } from 'date-fns';
 import { cn } from '@/lib/cn';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useUpcoming } from '@/features/planner/api';
 import { occurrenceKey } from '@/features/planner/recurrence';
 import { countdownLabel } from '@/features/planner/calendar';
@@ -10,10 +11,12 @@ import { WidgetCard } from './WidgetCard';
 
 export function UpcomingCard() {
   const [now] = useState(() => new Date());
-  const items = useUpcoming({ days: 7, kinds: ['assignment', 'exam', 'deadline'] });
+  const { items, isPending } = useUpcoming({ days: 7, kinds: ['assignment', 'exam', 'deadline'] });
   return (
     <WidgetCard title="Coming up" more={{ to: '/planner?view=week', label: 'Week' }}>
-      {items.length === 0 ? (
+      {isPending ? (
+        <div className="flex flex-col gap-2" aria-busy="true"><Skeleton className="h-10" /><Skeleton className="h-10" /></div>
+      ) : items.length === 0 ? (
         <p className="text-sm text-ink-muted">No assignments, exams or deadlines in the next 7 days.</p>
       ) : (
         <ul className="flex flex-col gap-2">

@@ -44,11 +44,12 @@ export function useUndatedTasks() {
 }
 
 /** Open occurrences from the start of today through the next `days` days. */
-export function useUpcoming({ days, kinds }: { days: number; kinds?: TaskKind[] }): Occurrence<Task>[] {
+export function useUpcoming({ days, kinds }: { days: number; kinds?: TaskKind[] }): { items: Occurrence<Task>[]; isPending: boolean } {
   const [start] = useState(() => startOfDay(new Date()));
   const range = useTasksInRange(start, addDays(start, days + 1));
-  return range.occurrences.filter((o) =>
+  const items = range.occurrences.filter((o) =>
     !range.completions.has(occurrenceKey(o.task.id, o.date)) && (!kinds || kinds.includes(o.task.kind as TaskKind)));
+  return { items, isPending: range.isPending };
 }
 
 export function useCreateTask() {

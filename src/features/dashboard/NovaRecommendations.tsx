@@ -50,7 +50,7 @@ export function NovaRecommendations() {
   const [cached, setCached] = useState(() => readCache(cacheKey));
   const task = useAiTask(generateRecommendations, { onSuccess: (r) => { writeCache(cacheKey, r); setCached(r); } });
 
-  const ready = !decks.isPending && !stats.isPending && !quizzes.isPending && !notes.isPending && !attempts.isPending && !sessions.isPending && !subjects.isPending;
+  const ready = !decks.isPending && !stats.isPending && !quizzes.isPending && !notes.isPending && !attempts.isPending && !sessions.isPending && !subjects.isPending && !exams.isPending;
   const hasData = (notes.data?.length ?? 0) + (decks.data?.length ?? 0) + (quizzes.data?.length ?? 0) > 0;
 
   const buildInput = () => buildRecommendationsInput({
@@ -61,7 +61,7 @@ export function NovaRecommendations() {
     quizzes: (quizzes.data ?? []).map((q) => ({ id: q.id, title: q.title })),
     notes: (notes.data ?? []).map((n) => ({ id: n.id, title: n.title || 'Untitled' })),
     weakTopics: weakTopicsFrom(attempts.data ?? []).map((w) => ({ topic: w.topic, subjectName: subjectById(subjects.data, w.subjectId)?.name })),
-    exams: exams.map((o) => ({ id: o.task.id, title: o.task.title, date: o.date, subjectName: subjectById(subjects.data, o.task.subject_id)?.name })),
+    exams: exams.items.map((o) => ({ id: o.task.id, title: o.task.title, date: o.date, subjectName: subjectById(subjects.data, o.task.subject_id)?.name })),
   });
 
   const started = useRef(false);

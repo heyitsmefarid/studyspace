@@ -23,15 +23,21 @@ export function useConversations() {
   });
 }
 
+/** How many of a conversation's most recent messages are loaded. */
+export const MESSAGE_WINDOW = 500;
+
+export async function fetchConversation(id: string): Promise<ConversationData> {
+  const conversation = unwrap(await supabase.from('ai_conversations').select('*').eq('id', id).single());
+  const newest = unwrap(await supabase.from('ai_messages').select('*').eq('conversation_id', id)
+    .order('created_at', { ascending: false }).limit(MESSAGE_WINDOW));
+  return { conversation, messages: [...newest].reverse() };
+}
+
 export function useConversation(id: string | undefined) {
   return useQuery({
     queryKey: tutorKeys.detail(id ?? ''),
     enabled: Boolean(id),
-    queryFn: async (): Promise<ConversationData> => {
-      const conversation = unwrap(await supabase.from('ai_conversations').select('*').eq('id', id!).single());
-      const messages = unwrap(await supabase.from('ai_messages').select('*').eq('conversation_id', id!).order('created_at').limit(500));
-      return { conversation, messages };
-    },
+    queryFn: () => fetchConversation(id!),
   });
 }
 
