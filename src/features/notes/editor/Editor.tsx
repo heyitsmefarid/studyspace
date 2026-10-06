@@ -7,7 +7,7 @@ import { Toolbar } from './Toolbar';
 import { uploadNoteFile } from '../attachmentsApi';
 import { friendlyMessage } from '@/lib/errors';
 
-export interface NoteEditorHandle { getSelectionText(): string; insertContent(c: JSONContent | JSONContent[]): void }
+export interface NoteEditorHandle { getSelectionText(): string; getText(): string; insertContent(c: JSONContent | JSONContent[]): void }
 interface Props { note: Note; uid: string; editable: boolean; onChange(v: { content: JSONContent; content_text: string }): void }
 
 export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEditor({ note, uid, editable, onChange }, ref) {
@@ -50,6 +50,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
       const { from, to } = editor.state.selection;
       return editor.state.doc.textBetween(from, to, '\n\n');
     },
+    getText: () => editor?.getText({ blockSeparator: '\n\n' }) ?? '',
     insertContent: (c) => { editor?.chain().focus('end').insertContent(c).run(); },
   }), [editor]);
 

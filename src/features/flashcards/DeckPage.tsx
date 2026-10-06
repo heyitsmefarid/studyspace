@@ -14,6 +14,7 @@ import { subjectById, useSubjects } from '@/features/subjects/api';
 import { SubjectDot } from '@/features/subjects/SubjectDot';
 import { useCopyDeck, useDeck, useDeleteCard, useDeleteDeck, useMoveCard, useMyProgress, useUpdateDeck, type Flashcard } from './api';
 import { AskNovaButton } from '@/features/ai/AskNovaButton';
+import { GenerateFromNoteButton } from './GenerateFlashcardsDialog';
 import { DeckConstellation } from './DeckConstellation';
 import { DeckDialog } from './DeckDialog';
 import { CardEditor } from './CardEditor';
@@ -112,7 +113,7 @@ export default function DeckPage() {
           <Input aria-label="Search cards" placeholder="Search cards…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         {editable && <Button onClick={() => setEditing('new')}><Plus className="size-4" /> Add card</Button>}
-        <span data-slot="generate-with-nova" />
+        {editable && <GenerateFromNoteButton deckId={deck.id} />}
       </div>
       {cards.length === 0 ? (
         <EmptyState title="This constellation has no stars yet." action={editable ? <Button onClick={() => setEditing('new')}>Add a card</Button> : undefined} />

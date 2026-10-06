@@ -13,12 +13,13 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useHotkey } from '@/app/useHotkey';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SubjectPicker } from '@/features/subjects/SubjectPicker';
-import { AskNovaButton } from '@/features/ai/AskNovaButton';
+import { Sheet } from '@/components/ui/Sheet';
 import { useCopyNote, useDeleteNote, useNote, useUpdateNote, type Note } from './api';
 import { useFolders } from './foldersApi';
 import { useAutosave } from './useAutosave';
 import { NoteEditor, type NoteEditorHandle } from './editor/Editor';
 import { AttachmentList } from './AttachmentList';
+import { NoteAiPanel } from './NoteAiPanel';
 import type { SaveStatus } from './autosaver';
 
 interface NoteDraft { title: string; content: JSONContent; content_text: string }
@@ -37,6 +38,7 @@ function EditorBody({ note }: { note: Note }) {
   const editable = note.owner_id === user?.id;
   const [title, setTitle] = useState(note.title);
   const [confirm, setConfirm] = useState(false);
+  const [novaOpen, setNovaOpen] = useState(false);
   const latest = useRef<NoteDraft>({ title: note.title, content: note.content as JSONContent, content_text: note.content_text });
 
   const save = useCallback(async (v: NoteDraft) => {
@@ -59,7 +61,7 @@ function EditorBody({ note }: { note: Note }) {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Link to="/notes" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="size-4" /> Notes</Link>
           <span className="flex-1" />
-          <AskNovaButton context={{ type: 'note', id: note.id }} label="Ask Nova" size="sm" variant="ghost" />
+          <Button variant="gold" size="sm" className="lg:hidden" onClick={() => setNovaOpen(true)}>✦ Nova</Button>
           {editable && (
             <span role="status" className={cn('text-xs', autosave.status === 'error' ? 'text-coral' : 'text-ink-faint')}>
               {STATUS[autosave.status]}
@@ -116,7 +118,14 @@ function EditorBody({ note }: { note: Note }) {
         />
         <AttachmentList noteId={note.id} editable={editable} />
       </div>
-      <aside data-slot="note-ai" className="hidden lg:block" />
+      <aside data-slot="note-ai" className="hidden lg:block">
+        <div className="sticky top-4 max-h-[calc(100dvh-2rem)] overflow-y-auto pb-4">
+          <NoteAiPanel note={note} editorRef={editorRef} editable={editable} />
+        </div>
+      </aside>
+      <Sheet open={novaOpen} onOpenChange={setNovaOpen} title="Nova">
+        <NoteAiPanel note={note} editorRef={editorRef} editable={editable} />
+      </Sheet>
       <ConfirmDialog open={confirm} onOpenChange={setConfirm} danger title="Delete this note?" confirmLabel="Delete"
         body="This removes the note and its attachments."
         onConfirm={async () => { await remove.mutateAsync(note.id); navigate('/notes'); }} />

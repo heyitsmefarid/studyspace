@@ -16,6 +16,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { useBestScores, useCreateQuiz, useDeleteQuiz, useQuizzes, useRecentAttempts, useUpdateQuiz, type QuizWithCount } from './api';
 import { StartQuizDialog } from './StartQuizDialog';
+import { GenerateQuizDialog } from './GenerateQuizDialog';
 
 const SOURCE: Record<string, { label: string; tone: 'neutral' | 'primary' | 'teal' }> = {
   manual: { label: 'Manual', tone: 'neutral' }, ai: { label: '✦ Nova', tone: 'primary' }, deck: { label: 'Deck', tone: 'teal' },
@@ -71,15 +72,17 @@ export default function QuizzesPage() {
   const recent = useRecentAttempts(5);
   const create = useCreateQuiz();
 
+  const [generating, setGenerating] = useState(false);
   const newQuiz = async () => { const z = await create.mutateAsync({ title: 'Untitled quiz', source: 'manual' }); navigate(`/quizzes/${z.id}`); };
 
   return (
     <div>
       <PageHeader title="Quizzes" actions={<>
-        <span data-slot="generate-quiz" />
+        <Button variant="gold" onClick={() => setGenerating(true)}><Sparkles className="size-4" /> Generate from notes</Button>
         <Button variant="secondary" onClick={() => setQuick(true)}><Shuffle className="size-4" /> Quick quiz</Button>
         <Button onClick={newQuiz} loading={create.isPending}><Plus className="size-4" /> New quiz</Button>
       </>} />
+      <GenerateQuizDialog open={generating} onOpenChange={setGenerating} />
       {(recent.data?.length ?? 0) > 0 && (
         <section className="mb-6">
           <h2 className="mb-2 text-sm font-semibold text-ink-muted">Recent results</h2>
