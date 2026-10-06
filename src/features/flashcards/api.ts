@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase, type Tables } from '@/lib/supabase';
 import { assertOk, unwrap } from '@/lib/errors';
+import { fetchAll } from '@/lib/fetchAll';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { CardForm } from './cardForm';
 import { deckMastery, progressToRow, stateFor, type CardState, type Grade, type Progress } from './srs';
@@ -37,8 +38,9 @@ export function useDeckStats() {
     queryKey: deckKeys.stats,
     enabled: Boolean(user),
     queryFn: async () => {
-      const cards = unwrap(await supabase.from('flashcards').select('id, deck_id'));
-      const progress = unwrap(await supabase.from('flashcard_progress').select('card_id, state, due_at, interval_minutes, review_count'));
+      const cards = await fetchAll((from, to) => supabase.from('flashcards').select('id, deck_id').order('id').range(from, to));
+      const progress = await fetchAll((from, to) => supabase.from('flashcard_progress')
+        .select('card_id, state, due_at, interval_minutes, review_count').order('card_id').range(from, to));
       const byCard = new Map(progress.map((p) => [p.card_id, p]));
       const now = Date.now();
       const stats = new Map<string, DeckStats>();

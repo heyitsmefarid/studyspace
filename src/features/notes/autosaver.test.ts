@@ -67,4 +67,30 @@ describe('createAutosaver', () => {
     expect(save).toHaveBeenCalledWith('x');
     expect(s.dirty).toBe(false);
   });
+
+  // Review C1: React StrictMode (dev) and Fast Refresh run the hook's cleanup + setup again on the same memoised saver.
+  it('keeps saving after an unmount/remount cycle (dispose → flush → revive)', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    const s = createAutosaver<string>({ save, delay: 1000 });
+    s.dispose();
+    await s.flush();
+    s.revive();
+    s.push('typed after remount');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(save).toHaveBeenLastCalledWith('typed after remount');
+    expect(s.status).toBe('saved');
+  });
+
+  it('flush still saves the latest value after dispose (leaving the page)', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    const s = createAutosaver<string>({ save, delay: 1000 });
+    s.push('unsaved words');
+    s.dispose();
+    await s.flush();
+    expect(save).toHaveBeenLastCalledWith('unsaved words');
+    s.push('after dispose');
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(save).toHaveBeenCalledTimes(1); // disposed: no scheduled saves until revived
+  });
 });

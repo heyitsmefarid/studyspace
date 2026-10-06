@@ -22,8 +22,9 @@ export function createAutosaver<T>(opts: {
     timer = setTimeout(() => { timer = undefined; void run(); }, ms);
   };
 
-  function run(): Promise<void> {
-    if (disposed || !dirty) return Promise.resolve();
+  /** `force` (flush) saves even when disposed; timers and retries only run while active. */
+  function run(force = false): Promise<void> {
+    if ((disposed && !force) || !dirty) return Promise.resolve();
     if (inFlight) return inFlight; // the in-flight save re-checks `dirty` when it settles
     const snapshot = latest as T;
     dirty = false;
@@ -57,10 +58,15 @@ export function createAutosaver<T>(opts: {
     async flush() {
       if (timer) { clearTimeout(timer); timer = undefined; }
       if (inFlight) await inFlight;
-      if (dirty) await run();
+      if (dirty) await run(true);
     },
     retry() { failures = 0; schedule(0); },
-    dispose() { disposed = true; if (timer) clearTimeout(timer); },
+    /** Stops scheduled saves and retries; flush() still saves. Reversible with revive() (StrictMode/Fast Refresh remount). */
+    dispose() { disposed = true; if (timer) { clearTimeout(timer); timer = undefined; } },
+    revive() {
+      disposed = false;
+      if (dirty && !inFlight && !timer) schedule(status === 'error' ? 0 : delay);
+    },
     get status() { return status; },
     get dirty() { return dirty || Boolean(inFlight); },
   };

@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { createTimer, timerReducer, type TimerAction, type TimerConfig, type TimerState } from './timer';
 
 export interface ActiveStudy {
+  /** Client-generated study_sessions.id — makes saving idempotent across retries. */
+  sessionId: string;
   timer: TimerState;
   subjectId: string | null;
   taskId: string | null;
@@ -42,7 +44,7 @@ export function parseStoredStudy(raw: string | null, nowMs: number): ActiveStudy
   const counters = a.counters as Record<string, unknown> | undefined;
   const content = a.content as Record<string, unknown> | null | undefined;
   const started = typeof a.startedAtIso === 'string' ? Date.parse(a.startedAtIso) : NaN;
-  const ok = isTimer(a.timer) && strOrNull(a.subjectId) && strOrNull(a.taskId) && strOrNull(a.taskDate) && strOrNull(a.endedAtIso)
+  const ok = isTimer(a.timer) && typeof a.sessionId === 'string' && strOrNull(a.subjectId) && strOrNull(a.taskId) && strOrNull(a.taskDate) && strOrNull(a.endedAtIso)
     && Boolean(counters) && ['cards', 'questions', 'correct'].every((k) => num(counters![k]))
     && (content === null || (Boolean(content) && CONTENT.has(content!.type as string) && typeof content!.id === 'string'))
     && Number.isFinite(started) && nowMs - started <= DAY;
@@ -76,11 +78,11 @@ function subscribe(l: () => void) {
   return () => { listeners.delete(l); };
 }
 
-export type StartStudy = Omit<ActiveStudy, 'timer' | 'counters' | 'startedAtIso' | 'endedAtIso'> & { config: TimerConfig };
+export type StartStudy = Omit<ActiveStudy, 'sessionId' | 'timer' | 'counters' | 'startedAtIso' | 'endedAtIso'> & { config: TimerConfig };
 
 function start({ config, ...rest }: StartStudy) {
   const now = Date.now();
-  set({ ...rest, timer: createTimer(config, now), counters: { cards: 0, questions: 0, correct: 0 }, startedAtIso: new Date(now).toISOString(), endedAtIso: null });
+  set({ ...rest, sessionId: crypto.randomUUID(), timer: createTimer(config, now), counters: { cards: 0, questions: 0, correct: 0 }, startedAtIso: new Date(now).toISOString(), endedAtIso: null });
 }
 
 function dispatch(action: TimerAction) {

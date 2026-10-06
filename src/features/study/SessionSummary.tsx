@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatDuration } from '@/lib/dates';
 import { friendlyMessage } from '@/lib/errors';
@@ -15,15 +15,7 @@ import { effectiveStreak, todayInZone, DEFAULT_TZ } from '@/features/gamificatio
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { taskKeys } from '@/features/planner/api';
 import { saveStudySession } from './api';
-import type { ActiveStudy } from './useStudySession';
-
-export interface FinishedStudy extends ActiveStudy { endedAtIso: string; focusSeconds: number }
-
-export const toFinished = (a: ActiveStudy): FinishedStudy => ({
-  ...a,
-  endedAtIso: a.endedAtIso ?? new Date(Date.parse(a.startedAtIso) + a.timer.focusMs).toISOString(),
-  focusSeconds: Math.round(a.timer.focusMs / 1000),
-});
+import type { FinishedStudy } from './finish';
 
 function useCountUp(target: number): number {
   const [shown, setShown] = useState(0);
@@ -56,7 +48,9 @@ function NewStar() {
 }
 
 /** Saves the finished session (retryable — it is never dropped), then celebrates it. */
-export function SessionSummary({ data, onSaved, onAgain }: { data: FinishedStudy; onSaved: (d: FinishedStudy) => void; onAgain: () => void }) {
+export function SessionSummary({ data, onSaved, onAgain, onDiscard }: {
+  data: FinishedStudy; onSaved: (d: FinishedStudy) => void; onAgain: () => void; onDiscard: () => void;
+}) {
   const { user, profile, refreshProfile } = useAuth();
   const qc = useQueryClient();
   const subjects = useSubjects();
@@ -69,7 +63,7 @@ export function SessionSummary({ data, onSaved, onAgain }: { data: FinishedStudy
   async function save() {
     try {
       await saveStudySession({
-        subjectId: data.subjectId, taskId: data.taskId, mode: data.timer.config.mode, startedAt: data.startedAtIso, endedAt: data.endedAtIso,
+        id: data.sessionId, subjectId: data.subjectId, taskId: data.taskId, mode: data.timer.config.mode, startedAt: data.startedAtIso, endedAt: data.endedAtIso,
         focusSeconds: data.focusSeconds, cardsStudied: data.counters.cards, questionsAnswered: data.counters.questions, correctAnswers: data.counters.correct,
       });
       if (data.taskId && data.taskDate) {
@@ -101,7 +95,12 @@ export function SessionSummary({ data, onSaved, onAgain }: { data: FinishedStudy
         <h1 className="font-display text-2xl">Your session isn&apos;t saved yet</h1>
         <p className="text-sm text-ink-muted">{error}</p>
         <p className="text-sm">Focus time: <strong>{formatDuration(data.focusSeconds)}</strong> — it&apos;s kept here until it saves.</p>
-        <Button onClick={() => { setStatus('saving'); void save(); }}><RotateCcw className="size-4" /> Retry save</Button>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => { setStatus('saving'); void save(); }}><RotateCcw className="size-4" /> Retry save</Button>
+          <Button variant="ghost" onClick={() => { if (window.confirm('Discard this session? It won’t be saved and earns no XP.')) onDiscard(); }}>
+            <Trash2 className="size-4" /> Discard session
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -121,6 +120,7 @@ export function SessionSummary({ data, onSaved, onAgain }: { data: FinishedStudy
       <div>
         <h1 className="font-display text-3xl">A new star joins your sky</h1>
         <p className="mt-1 text-ink-muted">{subjectById(subjects.data, data.subjectId)?.name ?? 'Study session'} · {formatDuration(data.focusSeconds)} of focus</p>
+        {data.capped && <p className="mt-1 text-xs text-ink-faint">Sessions are capped at 16 hours, so only the last 16 were counted.</p>}
       </div>
       <p className="font-display text-5xl text-gold tabular" aria-label={`${xp} XP earned`}>+{shownXp} XP</p>
       <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">

@@ -6,7 +6,8 @@ import { useTimer } from './useTimer';
 import { timerReducer, totalFocusMs } from './timer';
 import { SessionSetup, type SetupChoices } from './SessionSetup';
 import { SessionRunner } from './SessionRunner';
-import { SessionSummary, toFinished, type FinishedStudy } from './SessionSummary';
+import { SessionSummary } from './SessionSummary';
+import { toFinished, type FinishedStudy } from './finish';
 
 export default function StudyPage() {
   const [params] = useSearchParams();
@@ -33,10 +34,11 @@ export default function StudyPage() {
   if (done) {
     return (
       <SessionSummary
-        key={done.startedAtIso}
+        key={done.sessionId}
         data={done}
         onSaved={(d) => { setSaved(d); clear(); }}
         onAgain={() => setSaved(null)}
+        onDiscard={() => { clear(); setSaved(null); }}
       />
     );
   }

@@ -78,14 +78,24 @@ export function useDeleteQuiz() {
   });
 }
 
+/**
+ * Saves a quiz's questions keeping their ids: one upsert of the whole set first (a failure leaves the old questions
+ * intact), then removal of only the questions the editor dropped. Stable ids keep attempts in progress gradable.
+ */
+export async function saveQuizQuestions(quizId: string, questions: (QuestionForm & { id: string })[]) {
+  if (questions.length) {
+    const rows = questionRows(quizId, questions).map((r, i) => ({ id: questions[i]!.id, ...r }));
+    assertOk(await supabase.from('quiz_questions').upsert(rows, { onConflict: 'id' }));
+  }
+  const removed = supabase.from('quiz_questions').delete().eq('quiz_id', quizId);
+  assertOk(await (questions.length ? removed.not('id', 'in', `(${questions.map((q) => q.id).join(',')})`) : removed));
+  assertOk(await supabase.from('quizzes').update({ updated_at: new Date().toISOString() }).eq('id', quizId));
+}
+
 export function useSaveQuestions(quizId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (questions: QuestionForm[]) => {
-      assertOk(await supabase.from('quiz_questions').delete().eq('quiz_id', quizId));
-      if (questions.length) assertOk(await supabase.from('quiz_questions').insert(questionRows(quizId, questions)));
-      assertOk(await supabase.from('quizzes').update({ updated_at: new Date().toISOString() }).eq('id', quizId));
-    },
+    mutationFn: (questions: (QuestionForm & { id: string })[]) => saveQuizQuestions(quizId, questions),
     onSuccess: () => qc.invalidateQueries({ queryKey: quizKeys.all }),
   });
 }

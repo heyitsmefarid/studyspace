@@ -41,11 +41,12 @@ function Editor({ quiz, initial }: { quiz: Quiz; initial: QuestionSnapshot[] }) 
 
   const change = (fn: () => void) => { fn(); setDirty(true); };
   const validated = () => {
-    const out: QuestionForm[] = [];
+    const out: (QuestionForm & { id: string })[] = [];
     const errs: Record<string, Record<string, string>> = {};
     for (const d of drafts) {
       const r = validateQuestion(toQuestionInput(d));
-      if (r.ok) out.push(r.value); else errs[d.key] = r.errors;
+      // Draft keys are the question ids (existing rows) or fresh UUIDs (new questions), so saves keep ids stable.
+      if (r.ok) out.push({ ...r.value, id: d.key }); else errs[d.key] = r.errors;
     }
     return { out, errs };
   };

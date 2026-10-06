@@ -16,6 +16,8 @@ export function friendlyMessage(err: unknown): string {
   if (/database error saving new user/i.test(message)) return "This email can't join StudySpace — it already has two members, or this email hasn't been invited yet.";
   if (code === '23505') return 'That already exists.';
   if (code === '42501' || /row-level security|permission denied/i.test(message)) return "You don't have permission to do that.";
+  // StudySpace's own guards raise plain sentences (23514/22023); Postgres's constraint messages stay generic.
+  if ((code === '23514' || code === '22023') && message && !/violates|relation "|column "|value too long/i.test(message)) return message;
   if (code === '23514' || code === '22001') return 'Some of that input is too long or not allowed.';
   if (code === 'PGRST116') return 'Not found.';
   if (/invalid login credentials/i.test(message)) return 'Wrong email or password.';

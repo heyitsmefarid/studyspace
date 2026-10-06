@@ -13,6 +13,12 @@ describe('friendlyMessage', () => {
     [{ message: 'StudySpace already has its two members.' }, 'StudySpace already has its two members.'],
     [{ message: 'Database error saving new user', status: 500 }, "This email can't join StudySpace — it already has two members, or this email hasn't been invited yet."],
     [42, 'Something went wrong. Please try again.'],
+    // Review I2: our own guard sentences reach the member; raw constraint violations stay generic.
+    [{ code: '23514', message: 'This session overlaps another of your sessions.' }, 'This session overlaps another of your sessions.'],
+    [{ code: '23514', message: 'Quiz finished too quickly to count.' }, 'Quiz finished too quickly to count.'],
+    [{ code: '22023', message: 'That does not look like an email address.' }, 'That does not look like an email address.'],
+    [{ code: '23514', message: 'new row for relation "tasks" violates check constraint "tasks_title_check"' }, 'Some of that input is too long or not allowed.'],
+    [{ code: '22001', message: 'value too long for type character varying(200)' }, 'Some of that input is too long or not allowed.'],
   ])('maps %o', (input, expected) => {
     expect(friendlyMessage(input)).toBe(expected);
   });

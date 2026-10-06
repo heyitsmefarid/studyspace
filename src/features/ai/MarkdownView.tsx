@@ -3,8 +3,10 @@ import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/cn';
 
 // Raw HTML is never rendered (skipHtml, no rehype-raw); react-markdown's default urlTransform drops javascript: links.
+// Images are never loaded: a remote URL in AI output could carry note text to another server (prompt injection).
 const COMPONENTS: Components = {
   a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  img: ({ alt }) => (alt ? <span className="text-ink-muted">[image: {alt}]</span> : null),
 };
 const PLUGINS = [remarkGfm];
 

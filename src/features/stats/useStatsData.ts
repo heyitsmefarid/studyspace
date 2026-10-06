@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { startOfDay, subDays } from 'date-fns';
 import { supabase } from '@/lib/supabase';
-import { unwrap } from '@/lib/errors';
+import { fetchAll } from '@/lib/fetchAll';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useDeckStats } from '@/features/flashcards/api';
 import { useTotalFocusSeconds } from '@/features/gamification/api';
@@ -20,8 +20,8 @@ export function useStatsData() {
   const attempts = useQuery({
     queryKey: ['stats', 'attempts', uid, since],
     enabled: Boolean(uid),
-    queryFn: async () => unwrap(await supabase.from('quiz_attempts').select('accuracy, finished_at, subject_id, topic_breakdown, title')
-      .eq('user_id', uid!).not('finished_at', 'is', null).gte('finished_at', since).order('finished_at')),
+    queryFn: () => fetchAll((from, to) => supabase.from('quiz_attempts').select('id, accuracy, finished_at, subject_id, topic_breakdown, title')
+      .eq('user_id', uid!).not('finished_at', 'is', null).gte('finished_at', since).order('finished_at').order('id').range(from, to)),
   });
   const reviews = useQuery({
     queryKey: ['stats', 'reviews', uid],

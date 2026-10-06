@@ -10,13 +10,15 @@ export function useAutosave<T>(save: (v: T) => Promise<void>, { delay = 1000 }: 
   const saver = useMemo(() => createAutosaver<T>({ save: (v) => saveRef.current(v), delay, onStatus: setStatus }), [delay]);
 
   useEffect(() => {
+    saver.revive();
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (saver.dirty) { void saver.flush(); e.preventDefault(); }
     };
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload);
-      void saver.flush().finally(() => saver.dispose());
+      saver.dispose();
+      void saver.flush();
     };
   }, [saver]);
 

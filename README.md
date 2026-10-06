@@ -11,6 +11,7 @@ Built with React + TypeScript + Vite + Tailwind, backed by Supabase (Auth, Postg
 3. Run the app (locally or deployed) and **sign up at `/signup`**. The first account is open; that's you.
 4. In **Settings → Partner**, invite your partner's email. They sign up at `/signup` with that email. After the second account, sign-up closes for good.
 5. Recommended: **Authentication → Attack Protection** → enable leaked-password protection.
+6. Once both accounts exist, run the security self-test: paste `supabase/tests/rls_checks.sql` into **SQL Editor** and run it. It should stop with `ERROR: RLS CHECKS PASSED`. Every change it makes is rolled back.
 
 > Sign up yourself **before** sharing or deploying the URL. Until the first account exists, anyone who has the URL could take the first seat.
 
