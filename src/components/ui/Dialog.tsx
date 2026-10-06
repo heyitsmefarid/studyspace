@@ -12,11 +12,12 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
   return (
     <R.Root open={open} onOpenChange={onOpenChange}>
       <R.Portal>
-        <R.Overlay className="fixed inset-0 z-40 bg-[#05081a]/60 backdrop-blur-sm" />
+        <R.Overlay className="fixed inset-0 z-40 bg-[#05081a]/60 backdrop-blur-sm data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out" />
         <R.Content
           className={cn(
-            'animate-rise fixed inset-x-0 bottom-0 z-50 max-h-[92dvh] overflow-y-auto rounded-t-3xl border border-line bg-raised p-5 shadow-glow',
+            'fixed inset-x-0 bottom-0 z-50 max-h-[92dvh] overflow-y-auto rounded-t-3xl border border-line bg-raised p-5 shadow-glow',
             'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl',
+            'data-[state=open]:animate-sheet-up data-[state=closed]:animate-sheet-down sm:data-[state=open]:animate-pop-in sm:data-[state=closed]:animate-pop-out',
             SIZES[size],
           )}
         >

@@ -6,7 +6,7 @@ import { applyTheme, readThemePref, type ThemePref } from '@/lib/theme';
 import { NAV } from './nav';
 import { PALETTE_SOURCES, type PaletteSource } from './paletteSources';
 
-const itemClass = 'flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-ink data-[selected=true]:bg-surface-2';
+const itemClass = 'flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-ink transition-[background-color,translate] duration-150 data-[selected=true]:translate-x-0.5 data-[selected=true]:bg-surface-2';
 const groupClass = '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-ink-faint';
 const NEXT_THEME: Record<ThemePref, ThemePref> = { system: 'night', night: 'daybreak', daybreak: 'system' };
 
@@ -43,8 +43,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       open={open}
       onOpenChange={onOpenChange}
       label="Command palette"
-      overlayClassName="fixed inset-0 z-40 bg-[#05081a]/60 backdrop-blur-sm"
-      contentClassName="fixed left-1/2 top-[12dvh] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-line bg-raised shadow-glow"
+      overlayClassName="fixed inset-0 z-40 bg-[#05081a]/60 backdrop-blur-sm data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out"
+      contentClassName="fixed left-1/2 top-[12dvh] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-line bg-raised shadow-glow data-[state=open]:animate-pop-in data-[state=closed]:animate-pop-out"
     >
       <Command.Input
         value={query}
