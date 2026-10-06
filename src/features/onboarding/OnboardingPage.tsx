@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyMessage, assertOk } from '@/lib/errors';
+import { prefersReducedMotion } from '@/lib/motion';
+import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Field, Input, Select } from '@/components/ui/Field';
@@ -28,12 +30,21 @@ function timezones(): string[] {
 }
 
 function StepStars({ step }: { step: number }) {
+  const pts: [number, number][] = [[10, 16], [60, 6], [110, 14], [150, 8]];
   return (
     <svg viewBox="0 0 160 24" className="h-6 w-40" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
-      <polyline points="10,16 60,6 110,14 150,8" fill="none" stroke="var(--line-strong)" strokeWidth="1" />
-      {[[10, 16], [60, 6], [110, 14], [150, 8]].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i <= step ? 4 : 3} fill={i <= step ? 'var(--gold)' : 'var(--ink-faint)'}
-          style={i <= step ? { filter: 'drop-shadow(0 0 6px var(--gold))' } : undefined} />
+      {pts.slice(1).map(([x, y], i) => {
+        const [px, py] = pts[i]!;
+        const lit = i < step;
+        return (
+          <line key={`${i}-${lit}`} x1={px} y1={py} x2={x} y2={y} stroke={lit ? 'var(--gold)' : 'var(--line-strong)'} strokeWidth="1"
+            pathLength={1} strokeDasharray="1" className={lit ? 'animate-draw-line' : undefined} />
+        );
+      })}
+      {pts.map(([x, y], i) => (
+        <circle key={`${i}-${i <= step}`} cx={x} cy={y} r={i <= step ? 4 : 3} fill={i <= step ? 'var(--gold)' : 'var(--ink-faint)'}
+          className={i === step ? 'animate-pop-in' : undefined}
+          style={i <= step ? { filter: 'drop-shadow(0 0 6px var(--gold))', transformOrigin: `${x}px ${y}px` } : undefined} />
       ))}
     </svg>
   );
@@ -44,6 +55,8 @@ export default function OnboardingPage() {
   const updateProfile = useUpdateProfile();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const [settling, setSettling] = useState(false);
   const [name, setName] = useState(profile?.display_name ?? '');
   const [color, setColor] = useState(profile?.star_color ?? STAR_COLORS[0]!);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -80,6 +93,8 @@ export default function OnboardingPage() {
       assertOk(await supabase.from('notes').insert({ owner_id: user.id, ...buildWelcomeNote(name.trim()) }));
       await updateProfile.mutateAsync({ onboarded_at: new Date().toISOString() });
       await refreshProfile();
+      setSettling(true);
+      await new Promise((r) => setTimeout(r, prefersReducedMotion() ? 0 : 900));
       toast.success('Your sky is ready ✦');
       navigate('/', { replace: true });
     } catch (err) {
@@ -92,17 +107,17 @@ export default function OnboardingPage() {
   const canNext = step === 0 ? name.trim().length > 0 && name.trim().length <= 40 : true;
 
   return (
-    <main className="grid min-h-dvh place-items-center px-4 py-10">
+    <main className="grid min-h-dvh animate-page-in place-items-center px-4 py-10">
       <StarBackdrop />
-      <Card className="relative z-10 w-full max-w-md">
+      <Card className="relative z-10 w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between"><Logo size="sm" /><StepStars step={step} /></div>
         <h1 className="mt-6 font-display text-2xl">{STEPS[step]}</h1>
 
-        <div className="mt-5 min-h-48">
+        <div key={step} className={cn('mt-5 min-h-48', dir === 1 ? 'animate-[step-in-right_320ms_var(--ease-soft)_both]' : 'animate-[step-in-left_320ms_var(--ease-soft)_both]')}>
           {step === 0 && (
             <Field label="What should we call you?" hint="Your partner sees this name.">
               {(id) => <Input id={id} autoFocus maxLength={40} value={name} onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && canNext) setStep(1); }} />}
+                onKeyDown={(e) => { if (e.key === 'Enter' && canNext) { setDir(1); setStep(1); } }} />}
             </Field>
           )}
 
@@ -110,6 +125,8 @@ export default function OnboardingPage() {
             <div className="flex flex-col gap-5">
               <ColorSwatches value={color} onChange={setColor} colors={STAR_COLORS} />
               <div className="relative h-28 overflow-hidden rounded-2xl border border-line bg-surface-2" aria-hidden>
+                <span className="absolute left-1/2 top-1/2 z-10 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background-color,box-shadow] duration-300"
+                  style={{ background: color, boxShadow: `0 0 18px 4px ${color}` }} />
                 {Array.from({ length: 12 }, (_, i) => (
                   <span key={i} className="absolute rounded-full animate-twinkle"
                     style={{ left: `${8 + ((i * 37) % 84)}%`, top: `${12 + ((i * 53) % 70)}%`, width: 3 + (i % 3) * 2, height: 3 + (i % 3) * 2,
@@ -154,11 +171,17 @@ export default function OnboardingPage() {
 
         {error && <p role="alert" className="mt-3 text-sm text-coral">{error}</p>}
         <div className="mt-6 flex justify-between gap-2">
-          <Button variant="ghost" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || busy}>Back</Button>
+          <Button variant="ghost" onClick={() => { setDir(-1); setStep((s) => Math.max(0, s - 1)); }} disabled={step === 0 || busy}>Back</Button>
           {step < STEPS.length - 1
-            ? <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext}>Next</Button>
+            ? <Button onClick={() => { setDir(1); setStep((s) => s + 1); }} disabled={!canNext}>Next</Button>
             : <Button onClick={finish} loading={busy}>Light up my sky</Button>}
         </div>
+        {settling && (
+          <div aria-hidden className="absolute inset-0 z-20 grid animate-fade-in place-items-center rounded-[inherit] bg-surface/90">
+            <span className="size-5 animate-pop-in rounded-full" style={{ background: color, boxShadow: `0 0 24px 6px ${color}` }} />
+            <p className="absolute bottom-8 animate-rise-in font-display text-lg" style={{ animationDelay: '200ms' }}>Your star is in the sky ✦</p>
+          </div>
+        )}
       </Card>
     </main>
   );
