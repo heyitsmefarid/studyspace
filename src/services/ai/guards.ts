@@ -27,13 +27,20 @@ export function zonedMidnightUtc(tz: string, now: Date): Date {
   return new Date(Date.UTC(w.y, w.m - 1, w.d) - offsetMs);
 }
 
-export function checkLimits(counts: { lastMinute: number; today: number }, limits: Limits): AiError | null {
-  if (counts.today >= limits.perDay) {
-    return { code: 'DAILY_LIMIT', message: `You've used all ${limits.perDay} Nova requests for today. They refresh at midnight.`, retryable: false };
+/** Client error for a refused reservation (codes come from public.reserve_ai_request). */
+export function limitError(code: string | null, limits: Limits): AiError | null {
+  if (code === 'DAILY_LIMIT') {
+    return { code: 'DAILY_LIMIT', message: `You've used all ${limits.perDay} Nova requests in the last 24 hours. Older ones free up as the day rolls on.`, retryable: false };
   }
-  if (counts.lastMinute >= limits.perMinute) {
+  if (code === 'RATE_LIMITED') {
     return { code: 'RATE_LIMITED', message: 'Nova needs a breather — try again in a minute.', retryable: true, retryAfter: 60 };
   }
+  return null;
+}
+
+export function checkLimits(counts: { lastMinute: number; today: number }, limits: Limits): AiError | null {
+  if (counts.today >= limits.perDay) return limitError('DAILY_LIMIT', limits);
+  if (counts.lastMinute >= limits.perMinute) return limitError('RATE_LIMITED', limits);
   return null;
 }
 

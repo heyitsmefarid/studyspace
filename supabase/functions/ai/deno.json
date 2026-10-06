@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@ai/": "../../../src/services/ai/",
+    "zod": "npm:zod@4.6.5"
+  }
+}

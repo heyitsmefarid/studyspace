@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "check:bundle": "node scripts/check-bundle.mjs",
-    "shoot": "node scripts/shoot.mjs"
+    "shoot": "node scripts/shoot.mjs",
+    "edge:bundle": "node scripts/bundle-edge.mjs"
   },
   "keywords": [],
   "author": "",

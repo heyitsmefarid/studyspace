@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkLimits, corsHeaders, parseAllowedOrigins, readLimits, zonedMidnightUtc } from './guards';
+import { checkLimits, corsHeaders, limitError, parseAllowedOrigins, readLimits, zonedMidnightUtc } from './guards';
 
 describe('zonedMidnightUtc', () => {
   it('finds local midnight in Manila (00:30 PHT = 16:30Z previous day)', () => {
@@ -42,5 +42,15 @@ describe('cors', () => {
     expect(h['Access-Control-Allow-Origin']).toBe('*');
     expect(h['Access-Control-Allow-Headers']).toBe('authorization, x-client-info, apikey, content-type');
     expect(h['Access-Control-Allow-Methods']).toBe('POST, OPTIONS');
+  });
+});
+
+describe('limitError (reservation codes)', () => {
+  const limits = { perMinute: 15, perDay: 200 };
+  it('maps reservation refusals to client errors', () => {
+    expect(limitError('DAILY_LIMIT', limits)).toMatchObject({ code: 'DAILY_LIMIT', retryable: false });
+    expect(limitError('DAILY_LIMIT', limits)!.message).toMatch(/200 Nova requests/);
+    expect(limitError('RATE_LIMITED', limits)).toMatchObject({ code: 'RATE_LIMITED', retryable: true, retryAfter: 60 });
+    expect(limitError(null, limits)).toBeNull();
   });
 });
