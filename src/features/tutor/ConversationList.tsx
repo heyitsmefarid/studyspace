@@ -26,7 +26,7 @@ export function ConversationList({ activeId, onNavigate }: { activeId?: string; 
       <Button variant="secondary" onClick={() => { navigate('/tutor'); onNavigate?.(); }}><Plus className="size-4" /> New conversation</Button>
       {list.isPending && [0, 1, 2].map((i) => <Skeleton key={i} className="h-14" />)}
       {list.data?.length === 0 && <p className="px-2 text-sm text-ink-muted">Your chats with Nova will appear here.</p>}
-      <ul className="flex flex-col gap-1">
+      <ul className="stagger flex flex-col gap-1 [--stagger-step:30ms]">
         {(list.data ?? []).map((c) => {
           const Icon = modeMeta(c.mode).icon;
           const active = c.id === activeId;

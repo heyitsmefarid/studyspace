@@ -43,14 +43,14 @@ export function ChatView({ messages, sending, error, canRetry, onRetry, remainin
     <div className="relative">
       <ol className="flex flex-col gap-4" aria-label="Conversation" aria-live="polite">
         {messages.map((m) => (
-          <li key={m.id} className={cn('flex gap-2', m.role === 'user' ? 'justify-end' : 'items-start')}>
+          <li key={m.id} className={cn('flex animate-rise-in gap-2', m.role === 'user' ? 'justify-end' : 'items-start')}>
             {m.role === 'assistant' && <NovaAvatar />}
             <div className={cn('flex min-w-0 max-w-[88%] flex-col gap-1', m.role === 'user' && 'items-end')}>
               <div className={cn(
                 'rounded-2xl px-4 py-2.5',
                 m.role === 'user' ? 'whitespace-pre-wrap rounded-br-md bg-primary-soft text-ink' : 'rounded-tl-md border border-line bg-surface',
               )}>
-                {m.role === 'user' ? m.content : <MarkdownView markdown={m.content} className="text-[15px]" />}
+                {m.role === 'user' ? m.content : <MarkdownView markdown={m.content} className="text-[15px]" reveal={m.id === lastAssistant?.id} />}
               </div>
               <div className="flex flex-wrap items-center gap-2 px-1">
                 <time className="text-[11px] text-ink-faint" dateTime={m.created_at}>{format(parseISO(m.created_at), 'HH:mm')}</time>

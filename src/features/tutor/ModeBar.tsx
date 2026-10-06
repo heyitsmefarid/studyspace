@@ -25,8 +25,8 @@ export function ModeBar({ mode, onMode, difficulty, onDifficulty, fast, onFast }
               aria-checked={on}
               onClick={() => onMode(m)}
               className={cn(
-                'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition',
-                on ? 'border-primary bg-primary-soft text-primary' : 'border-line bg-surface-2 text-ink-muted hover:text-ink',
+                'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition-[background-color,border-color,color,scale] duration-200 ease-float active:scale-95',
+                on ? 'animate-pop-in border-primary bg-primary-soft text-primary' : 'border-line bg-surface-2 text-ink-muted hover:text-ink',
               )}
             >
               <Icon className="size-4" aria-hidden /> {meta.label}

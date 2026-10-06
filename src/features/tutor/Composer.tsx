@@ -31,7 +31,7 @@ export function Composer({ initial = '', busy, onSend, placeholder = 'Ask Nova a
   };
 
   return (
-    <form className="flex items-end gap-2 rounded-2xl border border-line bg-surface p-2 focus-within:border-primary" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
+    <form className="flex items-end gap-2 rounded-2xl border border-line bg-surface p-2 transition-[border-color,box-shadow] duration-200 focus-within:border-primary focus-within:shadow-[0_0_0_4px_var(--primary-soft)]" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <div className="relative min-w-0 flex-1">
         <textarea
           ref={ref}
@@ -48,7 +48,7 @@ export function Composer({ initial = '', busy, onSend, placeholder = 'Ask Nova a
           <span className={cn('absolute -top-5 right-1 text-xs tabular', text.length >= MAX ? 'text-coral' : 'text-ink-faint')}>{text.length}/{MAX}</span>
         )}
       </div>
-      <Button type="submit" size="icon" aria-label="Send" disabled={!text.trim() || busy} className="rounded-xl">
+      <Button type="submit" size="icon" aria-label="Send" disabled={!text.trim() || busy} className={cn('rounded-xl', text.trim() && '-translate-y-px shadow-[0_0_0_4px_var(--primary-soft)]')}>
         <SendHorizontal className="size-5" />
       </Button>
     </form>
