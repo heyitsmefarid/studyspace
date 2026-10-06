@@ -14,8 +14,21 @@ export function safeFileName(name: string): string {
 
 export const objectPath = (uid: string, ...segments: string[]) => [uid, ...segments].join('/');
 
+const SCRIPTABLE = new Set(['text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml', 'application/xml', 'application/javascript', 'text/javascript']);
+const INLINE_SAFE = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'application/pdf']);
+const baseType = (mime: string) => mime.split(';')[0]!.trim().toLowerCase();
+
+/** Content type to store: anything a browser could execute is stored as an opaque download. */
+export function safeContentType(mime: string): string {
+  const t = baseType(mime);
+  return !t || SCRIPTABLE.has(t) ? 'application/octet-stream' : t;
+}
+
+/** Only images and PDFs are opened in a tab; every other attachment is downloaded. */
+export const opensInline = (mime: string) => INLINE_SAFE.has(baseType(mime));
+
 export async function uploadFile(bucket: Bucket, path: string, file: File): Promise<void> {
-  const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type, upsert: false });
+  const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: safeContentType(file.type), upsert: false });
   if (error) throw new AppError(/exceed|too large/i.test(error.message) ? 'That file is too large.' : friendlyMessage(error), undefined, error);
 }
 

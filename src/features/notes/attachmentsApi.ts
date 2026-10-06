@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase, type Tables } from '@/lib/supabase';
 import { AppError, assertOk, unwrap } from '@/lib/errors';
-import { objectPath, removeFile, safeFileName, uploadFile } from '@/lib/storage';
+import { objectPath, removeFile, safeContentType, safeFileName, uploadFile } from '@/lib/storage';
 import { useAuth } from '@/features/auth/AuthProvider';
 
 export type Attachment = Tables<'note_attachments'>;
@@ -14,7 +14,7 @@ export async function uploadNoteFile(noteId: string, uid: string, file: File, ki
   await uploadFile('note-files', path, file);
   return unwrap(await supabase.from('note_attachments').insert({
     note_id: noteId, owner_id: uid, kind, storage_path: path, file_name: file.name.slice(0, 255),
-    mime_type: file.type || 'application/octet-stream', size_bytes: file.size,
+    mime_type: safeContentType(file.type), size_bytes: file.size,
   }).select().single());
 }
 
