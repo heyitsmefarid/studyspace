@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { JSONContent } from '@tiptap/react';
-import { supabase, type Tables, type TablesUpdate } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { supabase, type Json, type Tables, type TablesUpdate } from '@/lib/supabase';
 import { assertOk, unwrap } from '@/lib/errors';
 import { excerpt } from '@/lib/text';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { applyLocalFilters, sortNotes, type NoteFilters, type NoteListItem } from './filters';
+import { uploadNoteFile } from './attachmentsApi';
+import { copyNoteImages } from './noteImages';
 
 export type Note = Tables<'notes'>;
 export const noteKeys = {
@@ -86,17 +89,42 @@ export function useUpdateNote({ silent = false }: { silent?: boolean } = {}) {
   });
 }
 
+/** Deletes a note, then its uploaded files (the attachment rows cascade with the note; Storage objects don't). */
+export async function deleteNote(id: string): Promise<void> {
+  const files = unwrap(await supabase.from('note_attachments').select('storage_path').eq('note_id', id));
+  assertOk(await supabase.from('notes').delete().eq('id', id));
+  if (files.length === 0) return;
+  const { error } = await supabase.storage.from('note-files').remove(files.map((f) => f.storage_path));
+  // The note is gone either way; files left behind only cost storage space.
+  if (error) console.warn('Could not remove the deleted note\'s files:', error.message);
+}
+
 export function useDeleteNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => assertOk(await supabase.from('notes').delete().eq('id', id)),
+    mutationFn: deleteNote,
     onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
   });
 }
 
+/** Copies a note (yours or your partner's) into your notes, with its own copies of the images. */
 export function useCopyNote() {
   const create = useCreateNote();
+  const { user } = useAuth();
   return useMutation({
-    mutationFn: (note: Note) => create.mutateAsync({ title: `${note.title} (copy)`.slice(0, 200), content: note.content as JSONContent, content_text: note.content_text }),
+    mutationFn: async (note: Note): Promise<Note> => {
+      const copy = await create.mutateAsync({ title: `${note.title} (copy)`.slice(0, 200), content: note.content as JSONContent, content_text: note.content_text });
+      const images = await copyNoteImages(note.content as JSONContent, {
+        download: async (path) => {
+          const { data, error } = await supabase.storage.from('note-files').download(path);
+          if (error) throw error;
+          return data;
+        },
+        upload: async (file) => (await uploadNoteFile(copy.id, user!.id, file, 'image')).storage_path,
+      });
+      if (images.failed > 0) toast.error(`${images.failed} image${images.failed === 1 ? '' : 's'} couldn't be copied — they still show while the original note exists.`);
+      if (images.content === note.content) return copy;
+      return unwrap(await supabase.from('notes').update({ content: images.content as Json }).eq('id', copy.id).select().single());
+    },
   });
 }
