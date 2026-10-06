@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn';
 import { mulberry32 } from '@/lib/random';
 import { hashString } from '@/features/flashcards/constellation';
 import { layoutSky, type SkySession, type SkyStar, type SkySubject } from '@/features/dashboard/sky';
-import { revealAlpha } from './reveal';
+import { revealAlpha, revealClock } from './reveal';
 
 const HIT = 14;
 
@@ -30,7 +30,7 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
   const [tip, setTip] = useState<{ x: number; y: number; label: string } | null>(null);
   const [themeTick, setThemeTick] = useState(0);
   const [now] = useState(() => new Date());
-  const revealed = useRef(false);
+  const revealStart = useRef<number | null>(null);
 
   useEffect(() => {
     const el = wrap.current;
@@ -73,14 +73,15 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
     const phase = new Map(sky.stars.map((s) => [s.id, (hashString(s.id) % 1000) / 100]));
 
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
-    // Only the first paint draws in; resizes and theme changes redraw instantly.
-    const revealMs = reveal && motion && !revealed.current && sky.stars.length > 0 ? 800 : 0;
-    if (sky.stars.length > 0) revealed.current = true;
     const t0 = performance.now();
+    // The first paint with stars draws them in; redraws during it (resize, theme, data) continue the same reveal.
+    revealStart.current = revealClock(revealStart.current, reveal && motion, sky.stars.length > 0, t0);
+    const origin = revealStart.current ?? t0;
+    const revealMs = revealStart.current !== null ? 800 : 0;
     const n = sky.stars.length;
 
     const draw = (t: number) => {
-      const elapsed = t - t0;
+      const elapsed = t - origin;
       ctx.clearRect(0, 0, size.w, size.h);
       ctx.fillStyle = dustColor;
       for (const d of dustPts) {
@@ -114,11 +115,11 @@ export function StarField({ sessions, subjects, meColor, height, dust = true, ar
     const loop = (t: number) => {
       if (document.visibilityState === 'visible' && t - last >= 33) { last = t; draw(t); }
       // Keep looping while stars twinkle, or until the reveal has finished.
-      if (twinkles || t - t0 <= revealMs + 50) raf = requestAnimationFrame(loop);
+      if (twinkles || t - origin <= revealMs + 50) raf = requestAnimationFrame(loop);
       else draw(t);
     };
     if (motion && (twinkles || revealMs > 0)) raf = requestAnimationFrame(loop);
-    else draw(t0 + revealMs);
+    else draw(origin + revealMs);
     return () => cancelAnimationFrame(raf);
   }, [sky, size, dust, themeTick, reveal]);
 
