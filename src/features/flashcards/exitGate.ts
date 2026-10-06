@@ -1,13 +1,25 @@
 /** Lets a graded card play its exit before the next card, ignoring extra presses until it has gone. */
 export function createExitGate(delayMs: number) {
   let busy = false;
+  let pending: { timer: ReturnType<typeof setTimeout>; fn: () => void } | null = null;
+  const fire = () => {
+    const p = pending;
+    pending = null;
+    busy = false;
+    p?.fn();
+  };
   return {
     run(fn: () => void): boolean {
       if (busy) return false;
       if (delayMs <= 0) { fn(); return true; }
       busy = true;
-      setTimeout(() => { busy = false; fn(); }, delayMs);
+      pending = { timer: setTimeout(fire, delayMs), fn };
       return true;
+    },
+    /** Runs a pending action now (session finished or unmounting) so a pressed grade is never dropped. */
+    flush(): void {
+      if (pending) clearTimeout(pending.timer);
+      fire();
     },
     get busy() { return busy; },
   };

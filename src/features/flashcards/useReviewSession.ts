@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { friendlyMessage } from '@/lib/errors';
 import { deckKeys, recordReview, useDeck, useMyProgress, type Flashcard } from './api';
+import { createReviewWriter } from './reviewWriter';
 import { buildQueue, previewIntervals, progressFromRow, requeueOffset, schedule, type Grade, type Progress } from './srs';
 
 export function useReviewSession({ deckId, all = false, shuffle = false }: { deckId: string; all?: boolean; shuffle?: boolean }) {
@@ -18,6 +19,7 @@ export function useReviewSession({ deckId, all = false, shuffle = false }: { dec
   const [local, setLocal] = useState(new Map<string, Progress>());
   const [stats, setStats] = useState({ done: 0, correct: 0, reviewed: 0, masteredNow: 0 });
   const [finished, setFinished] = useState(false);
+  const [writer] = useState(() => createReviewWriter((err) => toast.error(`Couldn't save that review: ${friendlyMessage(err)}`)));
 
   const derived = useMemo(() => {
     if (!deck.data || !progressQ.data) return null;
@@ -44,8 +46,7 @@ export function useReviewSession({ deckId, all = false, shuffle = false }: { dec
     const rest = queue.slice(1);
     if (g === 0) rest.splice(requeueOffset(rest.length), 0, card.id);
     setEdited(rest);
-    recordReview({ userId: user!.id, card, next, grade: g, wasCorrect, sessionKey })
-      .catch((err) => toast.error(`Couldn't save that review: ${friendlyMessage(err)}`));
+    writer.enqueue(card.id, () => recordReview({ userId: user!.id, card, next, grade: g, wasCorrect, sessionKey }));
   }
 
   function finish() {
@@ -61,5 +62,7 @@ export function useReviewSession({ deckId, all = false, shuffle = false }: { dec
     status, card, progress, previews: previewIntervals(progress, startedAt),
     done: stats.done, remaining: queue?.length ?? 0, correct: stats.correct, reviewed: stats.reviewed,
     masteredNow: stats.masteredNow, grade, finish, sessionKey, deck: deck.data?.deck,
+    /** Resolves once every review of this session has been written (the session XP counts them). */
+    whenSaved: writer.flush,
   } as const;
 }

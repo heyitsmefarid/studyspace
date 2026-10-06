@@ -56,3 +56,26 @@ describe('runExit', () => {
     expect(commit).toHaveBeenCalledExactlyOnceWith(2);
   });
 });
+
+// Deferred U6: a grade pressed during the exit animation must not be lost when the session ends or unmounts.
+describe('createExitGate flush', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('runs a pending action now, exactly once', () => {
+    const gate = createExitGate(220);
+    const grade = vi.fn();
+    gate.run(() => grade(2));
+    gate.flush();
+    expect(grade).toHaveBeenCalledExactlyOnceWith(2);
+    expect(gate.busy).toBe(false);
+    vi.advanceTimersByTime(500);
+    expect(grade).toHaveBeenCalledOnce();
+  });
+
+  it('does nothing when no exit is pending', () => {
+    const gate = createExitGate(220);
+    expect(() => gate.flush()).not.toThrow();
+    expect(gate.busy).toBe(false);
+  });
+});

@@ -36,6 +36,7 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
   const [gate] = useState(() => createExitGate(prefersReducedMotion() ? 0 : 220));
   const [leaving, setLeaving] = useState<Grade | null>(null);
   const card = s.card;
+  const whenSaved = s.whenSaved;
   const isChoice = card?.type === 'mcq' || card?.type === 'tf';
   const options = card?.type === 'tf' ? ['True', 'False'] : Array.isArray(card?.options) ? (card!.options as string[]) : [];
   const wasCorrect = isChoice && chosen !== null ? same(chosen, card?.correct_answer) : null;
@@ -64,12 +65,16 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
     if (s.status !== 'done' || finishing.current) return;
     finishing.current = true;
     (async () => {
+      await whenSaved();
       const xp = s.reviewed >= 5 ? await completeFlashcardSession(s.sessionKey).catch(() => 0) : 0;
       void qc.invalidateQueries({ queryKey: ['profiles'] });
       const data: ReviewSummaryData = { reviewed: s.reviewed, correct: s.correct, accuracy: s.reviewed ? s.correct / s.reviewed : 0, masteredNow: s.masteredNow, xp, sessionKey: s.sessionKey };
       if (onFinish) onFinish(data); else setSummary(data);
     })();
-  }, [s.status, s.reviewed, s.correct, s.masteredNow, s.sessionKey, qc, onFinish]);
+  }, [s.status, s.reviewed, s.correct, s.masteredNow, s.sessionKey, whenSaved, qc, onFinish]);
+
+  // a grade pressed during the exit animation still counts if the session unmounts first
+  useEffect(() => () => gate.flush(), [gate]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -111,7 +116,7 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
           <ProgressBar value={s.done / Math.max(1, s.done + s.remaining)} label="Session progress" className="mt-1" />
         </div>
         <span className="shrink-0 text-sm text-ink-muted tabular">{s.remaining} left</span>
-        <Button variant="secondary" size="sm" onClick={s.finish}>Finish</Button>
+        <Button variant="secondary" size="sm" onClick={() => { gate.flush(); s.finish(); }}>Finish</Button>
       </div>
 
       <div key={card.id} className={cn(leaving === null ? 'animate-[card-in_320ms_var(--ease-soft)_both]' : 'animate-[card-out_220ms_var(--ease-soft)_both]', leaving !== null && GRADE_TINT[leaving])}>
