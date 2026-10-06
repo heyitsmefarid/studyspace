@@ -14,14 +14,23 @@ export function safeFileName(name: string): string {
 
 export const objectPath = (uid: string, ...segments: string[]) => [uid, ...segments].join('/');
 
-const SCRIPTABLE = new Set(['text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml', 'application/xml', 'application/javascript', 'text/javascript']);
+/** Mirrors the note-files/chat-files bucket allowlist (migration 20261006000010). */
+const STORABLE = new Set([
+  'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/heic',
+  'application/pdf', 'text/plain', 'text/csv', 'text/markdown',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet',
+  'application/zip', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'video/mp4',
+]);
 const INLINE_SAFE = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'application/pdf']);
 const baseType = (mime: string) => mime.split(';')[0]!.trim().toLowerCase();
 
-/** Content type to store: anything a browser could execute is stored as an opaque download. */
+/** Content type to store: anything outside the allowlist (including HTML/SVG/XML/JS) becomes an opaque download. */
 export function safeContentType(mime: string): string {
   const t = baseType(mime);
-  return !t || SCRIPTABLE.has(t) ? 'application/octet-stream' : t;
+  return STORABLE.has(t) ? t : 'application/octet-stream';
 }
 
 /** Only images and PDFs are opened in a tab; every other attachment is downloaded. */

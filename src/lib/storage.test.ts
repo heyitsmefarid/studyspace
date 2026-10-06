@@ -21,6 +21,8 @@ describe('attachment content types', () => {
     expect(safeContentType('')).toBe('application/octet-stream');
     expect(safeContentType('application/pdf')).toBe('application/pdf');
     expect(safeContentType('image/png')).toBe('image/png');
+    expect(safeContentType('application/x-custom-thing')).toBe('application/octet-stream');
+    expect(safeContentType('application/vnd.openxmlformats-officedocument.wordprocessingml.document')).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   });
   it('opens only images and PDFs inline; everything else downloads', () => {
     expect(opensInline('image/jpeg')).toBe(true);
