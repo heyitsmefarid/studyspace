@@ -30,7 +30,7 @@ function DeckCard({ deck, stats }: { deck: DeckWithCount; stats?: DeckStats }) {
   const due = stats?.due ?? 0;
   const fresh = stats?.fresh ?? deck.card_count;
   return (
-    <Card interactive className="flex flex-col gap-3 p-4">
+    <Card interactive className="group flex flex-col gap-3 p-4">
       <Link to={`/decks/${deck.id}`} className="flex flex-col gap-3">
         <div className="rounded-xl bg-surface-2 px-2 py-1"><DeckConstellation cardIds={ids} states={states} size="sm" /></div>
         <div className="flex items-start justify-between gap-3">
@@ -112,7 +112,7 @@ export default function DecksPage() {
               action={<div className="flex flex-wrap justify-center gap-2"><Button onClick={() => setDialogOpen(true)}>Create a deck</Button>
                 <Link to="/notes" className="inline-flex h-11 items-center rounded-xl border border-line bg-surface-2 px-4 text-sm font-semibold">Generate from a note</Link></div>} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((d) => <DeckCard key={d.id} deck={d} stats={stats.data?.get(d.id)} />)}
         </div>
       )}

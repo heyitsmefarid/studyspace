@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/cn';
+import { prefersReducedMotion } from '@/lib/motion';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ProgressBar } from '@/components/ui/Progress';
@@ -10,6 +11,7 @@ import { completeFlashcardSession } from './api';
 import { FlipCard } from './FlipCard';
 import { ReviewSummary, type ReviewSummaryData } from './ReviewSummary';
 import { useReviewSession } from './useReviewSession';
+import { createExitGate } from './exitGate';
 import type { Grade } from './srs';
 
 const GRADES: { g: Grade; label: string; cls: string }[] = [
@@ -18,6 +20,7 @@ const GRADES: { g: Grade; label: string; cls: string }[] = [
   { g: 2, label: 'Good', cls: 'bg-primary text-primary-ink' },
   { g: 3, label: 'Easy', cls: 'bg-gold-soft text-gold' },
 ];
+const GRADE_TINT: Record<Grade, string> = { 0: 'card-tint-coral', 1: 'card-tint-gold', 2: 'card-tint-primary', 3: 'card-tint-teal' };
 const same = (a: string | null | undefined, b: string | null | undefined) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase();
 
 export function ReviewSession({ deckId, all = false, shuffle = false, embedded = false, onReview, onFinish }: {
@@ -30,6 +33,8 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
   const [chosen, setChosen] = useState<string | null>(null);
   const [summary, setSummary] = useState<ReviewSummaryData | null>(null);
   const finishing = useRef(false);
+  const [gate] = useState(() => createExitGate(prefersReducedMotion() ? 0 : 220));
+  const [leaving, setLeaving] = useState<Grade | null>(null);
   const card = s.card;
   const isChoice = card?.type === 'mcq' || card?.type === 'tf';
   const options = card?.type === 'tf' ? ['True', 'False'] : Array.isArray(card?.options) ? (card!.options as string[]) : [];
@@ -42,6 +47,11 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
     s.grade(g, wasCorrect);
     setRevealed(false);
     setChosen(null);
+  }
+
+  /** Grades after the card's exit animation; extra presses during the exit are ignored. */
+  function gradeOut(g: Grade) {
+    if (gate.run(() => { setLeaving(null); grade(g); })) setLeaving(g);
   }
 
   function choose(o: string) {
@@ -72,8 +82,8 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
         if (n >= 1 && n <= options.length) { choose(options[n - 1]!); return; }
       }
       if (answered) {
-        if (['1', '2', '3', '4'].includes(e.key)) { grade((Number(e.key) - 1) as Grade); return; }
-        if (e.key === 'Enter' && isChoice) grade(wasCorrect ? 2 : 0);
+        if (['1', '2', '3', '4'].includes(e.key)) { gradeOut((Number(e.key) - 1) as Grade); return; }
+        if (e.key === 'Enter' && isChoice) gradeOut(wasCorrect ? 2 : 0);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -104,7 +114,9 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
         <Button variant="secondary" size="sm" onClick={s.finish}>Finish</Button>
       </div>
 
-      <FlipCard card={card} revealed={revealed} onReveal={() => setRevealed(true)} />
+      <div key={card.id} className={cn(leaving === null ? 'animate-[card-in_320ms_var(--ease-soft)_both]' : 'animate-[card-out_220ms_var(--ease-soft)_both]', leaving !== null && GRADE_TINT[leaving])}>
+        <FlipCard card={card} revealed={revealed} onReveal={() => setRevealed(true)} />
+      </div>
 
       {isChoice && (
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -114,8 +126,8 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
               <button key={o} onClick={() => choose(o)} disabled={chosen !== null}
                 className={cn('min-h-12 rounded-xl border px-4 py-3 text-left text-sm transition',
                   chosen === null && 'border-line bg-surface hover:border-primary',
-                  chosen !== null && isRight && 'border-teal bg-teal-soft text-teal',
-                  chosen !== null && chosen === o && !isRight && 'border-coral bg-coral-soft text-coral',
+                  chosen !== null && isRight && 'animate-pop-in border-teal bg-teal-soft text-teal',
+                  chosen !== null && chosen === o && !isRight && 'animate-shake border-coral bg-coral-soft text-coral',
                   chosen !== null && chosen !== o && !isRight && 'border-line opacity-60')}>
                 <span className="mr-2 text-ink-faint tabular">{card.type === 'tf' ? o[0] : i + 1}</span>{o}
               </button>
@@ -127,7 +139,7 @@ export function ReviewSession({ deckId, all = false, shuffle = false, embedded =
       {answered && (
         <div className="mt-5 grid grid-cols-4 gap-2" role="group" aria-label="How well did you know it?">
           {GRADES.map(({ g, label, cls }) => (
-            <button key={g} onClick={() => grade(g)}
+            <button key={g} onClick={() => gradeOut(g)}
               className={cn('flex min-h-14 flex-col items-center justify-center rounded-xl text-sm font-semibold', cls,
                 isChoice && g === (wasCorrect ? 2 : 0) && 'ring-2 ring-primary')}>
               {label}<span className="text-xs font-normal opacity-80 tabular">{g + 1} · {s.previews[g]}</span>
