@@ -141,3 +141,15 @@ describe('finalizeAnalysis & finalizeRecommendations & finalizeText', () => {
     expect(finalizeText('   ')).toMatchObject({ ok: false, reason: 'empty' });
   });
 });
+
+// Phase 1 deferred minor: a letter answer must point at the option it named before duplicate options are merged.
+describe('finalizeQuiz letter answers with duplicate options', () => {
+  it('maps "C" to the third option as written, not the third after de-duplication', () => {
+    const r = finalizeQuiz({ questions: [
+      { type: 'mcq', question: 'Which city is in England?', options: ['Paris', 'paris', 'London', 'Rome'], correctAnswer: 'C', explanation: '', topic: 'Geo' },
+    ] }, quizInput());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.data.questions[0]).toMatchObject({ options: ['Paris', 'London', 'Rome'], correctAnswer: 'London' });
+  });
+});

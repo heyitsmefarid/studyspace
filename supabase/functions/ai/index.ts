@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { runTask } from '@ai/router.ts';
+import { preflight, runTask } from '@ai/router.ts';
 import { createGeminiProvider } from '@ai/geminiProvider.ts';
 import { createGroqProvider } from '@ai/groqProvider.ts';
 import { AI_TASKS, fail, type AiTask } from '@ai/types.ts';
@@ -40,6 +40,14 @@ Deno.serve(async (req) => {
   }
   const task = body.task as AiTask;
 
+  const providers = {
+    gemini: createGeminiProvider({ apiKey: env('GEMINI_API_KEY'), model: env('GEMINI_MODEL') }),
+    groq: createGroqProvider({ apiKey: env('GROQ_API_KEY'), model: env('GROQ_MODEL') }),
+  };
+  // Bad input or missing AI keys are answered before reserving, so they never use a daily request slot.
+  const early = preflight(task, body.input, providers);
+  if (early && !early.ok) return reply(early, early.error.code === 'BAD_INPUT' ? 400 : 200);
+
   // Reserve a slot atomically (per-member lock, rolling 24 h) before any provider call.
   const limits = readLimits(env);
   const { data: reservation, error: reserveError } = await admin
@@ -51,12 +59,7 @@ Deno.serve(async (req) => {
   }
   if (!reservation.allowed) return reply({ ok: false, error: limitError(reservation.code, limits) }, 429);
 
-  const result = await runTask(task, body.input, {
-    providers: {
-      gemini: createGeminiProvider({ apiKey: env('GEMINI_API_KEY'), model: env('GEMINI_MODEL') }),
-      groq: createGroqProvider({ apiKey: env('GROQ_API_KEY'), model: env('GROQ_MODEL') }),
-    },
-  });
+  const result = await runTask(task, body.input, { providers });
 
   const { error: logError } = await admin.from('ai_requests').update({
     provider: result.ok ? result.meta.provider : null,

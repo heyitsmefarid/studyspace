@@ -11,22 +11,6 @@ export function readLimits(get: (k: string) => string | undefined): Limits {
   return { perMinute: intEnv(get('AI_MINUTE_LIMIT'), 15), perDay: intEnv(get('AI_DAILY_LIMIT'), 200) };
 }
 
-function wallClock(tz: string, now: Date) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
-  }).formatToParts(now);
-  const get = (t: string) => Number(parts.find((p) => p.type === t)!.value);
-  return { y: get('year'), m: get('month'), d: get('day'), h: get('hour'), min: get('minute'), s: get('second') };
-}
-
-export function zonedMidnightUtc(tz: string, now: Date): Date {
-  let w;
-  try { w = wallClock(tz, now); } catch { w = wallClock('Asia/Manila', now); }
-  const wallAsUtc = Date.UTC(w.y, w.m - 1, w.d, w.h, w.min, w.s);
-  const offsetMs = wallAsUtc - Math.floor(now.getTime() / 1000) * 1000;
-  return new Date(Date.UTC(w.y, w.m - 1, w.d) - offsetMs);
-}
-
 /** Client error for a refused reservation (codes come from public.reserve_ai_request). */
 export function limitError(code: string | null, limits: Limits): AiError | null {
   if (code === 'DAILY_LIMIT') {
@@ -35,12 +19,6 @@ export function limitError(code: string | null, limits: Limits): AiError | null 
   if (code === 'RATE_LIMITED') {
     return { code: 'RATE_LIMITED', message: 'Nova needs a breather — try again in a minute.', retryable: true, retryAfter: 60 };
   }
-  return null;
-}
-
-export function checkLimits(counts: { lastMinute: number; today: number }, limits: Limits): AiError | null {
-  if (counts.today >= limits.perDay) return limitError('DAILY_LIMIT', limits);
-  if (counts.lastMinute >= limits.perMinute) return limitError('RATE_LIMITED', limits);
   return null;
 }
 

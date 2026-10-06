@@ -103,3 +103,15 @@ describe('runTask', () => {
     expect(!r.ok && r.error.code).toBe('EMPTY');
   });
 });
+
+// Phase 1 deferred minor: bad input and "no keys configured" must be rejected before a daily request slot is reserved.
+describe('preflight', () => {
+  it('rejects invalid input and missing providers without calling anything', async () => {
+    const { preflight } = await import('./router');
+    const off = { gemini: fake('gemini', [], false), groq: fake('groq', [], false) };
+    const on = { gemini: fake('gemini', []), groq: fake('groq', [], false) };
+    expect(preflight('summarize', { text: '' }, on)).toMatchObject({ ok: false, error: { code: 'BAD_INPUT' } });
+    expect(preflight('summarize', { text: 'notes' }, off)).toMatchObject({ ok: false, error: { code: 'PROVIDER_UNAVAILABLE', retryable: false } });
+    expect(preflight('summarize', { text: 'notes' }, on)).toBeNull();
+  });
+});

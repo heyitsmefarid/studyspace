@@ -1,28 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { checkLimits, corsHeaders, limitError, parseAllowedOrigins, readLimits, zonedMidnightUtc } from './guards';
-
-describe('zonedMidnightUtc', () => {
-  it('finds local midnight in Manila (00:30 PHT = 16:30Z previous day)', () => {
-    expect(zonedMidnightUtc('Asia/Manila', new Date('2026-10-05T16:30:00Z')).toISOString()).toBe('2026-10-05T16:00:00.000Z');
-    expect(zonedMidnightUtc('Asia/Manila', new Date('2026-10-05T15:59:00Z')).toISOString()).toBe('2026-10-04T16:00:00.000Z');
-  });
-  it('works for UTC and falls back to Manila for unknown zones', () => {
-    expect(zonedMidnightUtc('UTC', new Date('2026-10-05T16:30:00Z')).toISOString()).toBe('2026-10-05T00:00:00.000Z');
-    expect(zonedMidnightUtc('Nope/Zone', new Date('2026-10-05T16:30:00Z')).toISOString()).toBe('2026-10-05T16:00:00.000Z');
-  });
-});
+import { corsHeaders, limitError, parseAllowedOrigins, readLimits } from './guards';
 
 describe('limits', () => {
-  const limits = { perMinute: 15, perDay: 200 };
-  it('daily limit wins and is not retryable', () => {
-    expect(checkLimits({ lastMinute: 20, today: 200 }, limits)).toMatchObject({ code: 'DAILY_LIMIT', retryable: false });
-  });
-  it('minute limit is retryable after 60 s', () => {
-    expect(checkLimits({ lastMinute: 15, today: 10 }, limits)).toMatchObject({ code: 'RATE_LIMITED', retryable: true, retryAfter: 60 });
-  });
-  it('passes under both limits', () => {
-    expect(checkLimits({ lastMinute: 14, today: 199 }, limits)).toBeNull();
-  });
   it('reads env with defaults and a floor of 1', () => {
     const env: Record<string, string> = { AI_MINUTE_LIMIT: 'abc', AI_DAILY_LIMIT: '0' };
     expect(readLimits((k) => env[k])).toEqual({ perMinute: 15, perDay: 1 });

@@ -144,7 +144,9 @@ export function finalizeQuiz(raw: unknown, input: z.output<typeof QuizInputSchem
     else {
       const stripped = stripOptionLetters(q.options);
       options = stripped.filter((o, i) => o && stripped.findIndex((x) => norm(x) === norm(o)) === i);
-      correct = options.length >= 2 ? snapAnswer(q.correctAnswer, options) : null;
+      // Snap against the options as written (a letter names a position there), then map onto the de-duplicated list.
+      const snapped = snapAnswer(q.correctAnswer, stripped);
+      correct = options.length >= 2 && snapped ? options.find((o) => norm(o) === norm(snapped)) ?? null : null;
       if (correct && options.length > 6) options = [correct, ...options.filter((o) => o !== correct).slice(0, 5)];
     }
     if (!correct) continue;

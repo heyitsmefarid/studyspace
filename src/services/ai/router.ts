@@ -34,22 +34,36 @@ function finalizeStructured(def: TaskDef, text: string, input: unknown): Finaliz
   return def.finalize(json, input);
 }
 
-export async function runTask(task: AiTask, rawInput: unknown, deps: RunDeps): Promise<AIResult<unknown>> {
-  const def = TASK_DEFS[task];
-  const parsed = def.input.safeParse(rawInput);
+type Checked = { ok: true; input: unknown; order: AIProvider[] } | { ok: false; error: AIResult<never> };
+
+function check(task: AiTask, rawInput: unknown, providers: RunDeps['providers']): Checked {
+  const parsed = TASK_DEFS[task].input.safeParse(rawInput);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    return fail('BAD_INPUT', first ? `${first.path.join('.') || 'input'}: ${first.message}` : 'Invalid request.');
+    return { ok: false, error: fail('BAD_INPUT', first ? `${first.path.join('.') || 'input'}: ${first.message}` : 'Invalid request.') };
   }
-  const input = parsed.data;
-  const prompt = def.build(input);
-  const primary = primaryFor(task, input);
+  const primary = primaryFor(task, parsed.data);
   const order = [primary, primary === 'gemini' ? 'groq' : 'gemini']
-    .map((n) => deps.providers[n as ProviderName])
+    .map((n) => providers[n as ProviderName])
     .filter((p): p is AIProvider => Boolean(p?.available));
   if (order.length === 0) {
-    return fail('PROVIDER_UNAVAILABLE', "Nova isn't connected to an AI provider yet — add the API keys in Supabase.", false);
+    return { ok: false, error: fail('PROVIDER_UNAVAILABLE', "Nova isn't connected to an AI provider yet — add the API keys in Supabase.", false) };
   }
+  return { ok: true, input: parsed.data, order };
+}
+
+/** Rejects bad input or "no AI keys configured" up front, so those never use a daily request slot. Null when runnable. */
+export function preflight(task: AiTask, rawInput: unknown, providers: RunDeps['providers']): AIResult<never> | null {
+  const c = check(task, rawInput, providers);
+  return c.ok ? null : c.error;
+}
+
+export async function runTask(task: AiTask, rawInput: unknown, deps: RunDeps): Promise<AIResult<unknown>> {
+  const def = TASK_DEFS[task];
+  const c = check(task, rawInput, deps.providers);
+  if (!c.ok) return c.error;
+  const { input, order } = c;
+  const prompt = def.build(input);
 
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const timeoutMs = deps.timeoutMs ?? 30_000;
