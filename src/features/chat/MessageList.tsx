@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { DEFAULT_TZ } from '@/features/gamification/streak';
 import { groupMessages } from './grouping';
 import { MessageBubble } from './MessageBubble';
+import { shouldRestore } from './touch';
 import type { ChatMessage } from './types';
 
 /** Stays pinned to the newest message when already there; otherwise offers a "New messages" pill. Loads older pages near the top. */
@@ -14,7 +15,8 @@ export function MessageList({ messages, hasOlder, loadOlder, highlightId, footer
   const { profile } = useAuth();
   const box = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
-  const restore = useRef<{ height: number; top: number } | null>(null);
+  const restore = useRef<{ height: number; top: number; lastId: string | undefined; count: number } | null>(null);
+  const count = useRef(0);
   const loading = useRef(false);
   const [showPill, setShowPill] = useState(false);
   const [now] = useState(() => new Date());
@@ -24,9 +26,11 @@ export function MessageList({ messages, hasOlder, loadOlder, highlightId, footer
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
-    if (restore.current) {
-      el.scrollTop = el.scrollHeight - restore.current.height + restore.current.top;
-      restore.current = null;
+    count.current = messages.length;
+    const req = restore.current;
+    restore.current = null;
+    if (req && shouldRestore(req, { lastId, count: messages.length })) {
+      el.scrollTop = el.scrollHeight - req.height + req.top;
     } else if (atBottom.current) {
       el.scrollTop = el.scrollHeight;
     } else if (lastId) {
@@ -46,8 +50,13 @@ export function MessageList({ messages, hasOlder, loadOlder, highlightId, footer
     if (atBottom.current) setShowPill(false);
     if (el.scrollTop < 120 && hasOlder && !loading.current) {
       loading.current = true;
-      restore.current = { height: el.scrollHeight, top: el.scrollTop };
-      void loadOlder().finally(() => { loading.current = false; });
+      const req = { height: el.scrollHeight, top: el.scrollTop, lastId, count: count.current };
+      restore.current = req;
+      // a failed or empty page must not leave a stale restore for the next live message
+      const clear = () => { if (restore.current === req) restore.current = null; };
+      loadOlder()
+        .then(() => { window.setTimeout(() => { if (count.current === req.count) clear(); }, 300); }, clear)
+        .finally(() => { loading.current = false; });
     }
   };
   const toBottom = () => {
