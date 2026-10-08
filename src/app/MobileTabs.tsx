@@ -7,12 +7,14 @@ import { ThemeToggle } from '@/components/sky/ThemeToggle';
 import { MOBILE_TABS } from './nav';
 import { MoreSheet } from './MoreSheet';
 import { ProfileChip } from './ProfileChip';
+import { Bell } from '@/features/notifications/Bell';
 
 export function MobileTopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
   return (
     <header data-mobile-chrome className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-bg/80 px-4 backdrop-blur md:hidden">
       <Logo size="sm" />
       <div className="flex items-center gap-1">
+        <Bell className="size-11" />
         <ThemeToggle className="size-11" />
         <button onClick={onOpenPalette} className="grid size-11 place-items-center rounded-xl text-ink-muted hover:bg-surface-2" aria-label="Search or do anything">
           <Search className="size-5" />

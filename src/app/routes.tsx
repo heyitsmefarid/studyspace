@@ -43,7 +43,7 @@ export const routes: RouteObject[] = [
           { path: 'space', element: <Placeholder title="Our Space" /> },
           { path: 'chat', element: <Placeholder title="Chat" /> },
           { path: 'market', element: <Placeholder title="Market" /> },
-          { path: 'notifications', element: <Placeholder title="Notifications" /> },
+          r('notifications', () => import('@/features/notifications/NotificationsPage')),
           { path: '*', element: <Placeholder title="Lost in space" body="That page doesn't exist." /> },
         ],
       },

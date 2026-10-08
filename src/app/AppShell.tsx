@@ -8,6 +8,7 @@ import { useHotkey } from './useHotkey';
 import { OfflineBanner } from './OfflineBanner';
 import { RealtimeProvider } from '@/features/realtime/RealtimeProvider';
 import { ConnectionBanner } from '@/features/realtime/ConnectionBanner';
+import { LiveSync } from './LiveSync';
 
 export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -27,6 +28,7 @@ export function AppShell() {
         <MobileTabs />
         <OfflineBanner />
         <ConnectionBanner />
+        <LiveSync />
         <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       </div>
     </RealtimeProvider>

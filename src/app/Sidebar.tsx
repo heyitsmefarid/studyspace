@@ -9,6 +9,7 @@ import { NAV } from './nav';
 import { ProfileChip } from './ProfileChip';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { PartnerAvatar } from '@/features/realtime/PartnerAvatar';
+import { Bell } from '@/features/notifications/Bell';
 
 const KEY = 'ss.sidebar';
 
@@ -37,6 +38,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <Link to="/" aria-label="StudySpace home">{collapsed ? <LogoMark /> : <Logo />}</Link>
         {!collapsed && (
           <span className="flex items-center gap-0.5">
+            <Bell className="size-8" />
             <ThemeToggle className="size-8" />
             <button onClick={toggle} className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Collapse sidebar">
               <ChevronsLeft className="size-4" />
@@ -84,6 +86,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
             {partner && <Link to="/space" className="rounded-full p-1 hover:bg-surface-2" aria-label="Our Space"><PartnerAvatar size={28} /></Link>}
+            <Bell />
             <ThemeToggle />
             <button onClick={toggle} className="flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
               <ChevronsRight className="size-4" />
