@@ -7,7 +7,7 @@ do $$
 declare
   a uuid; b uuid;
   n_private uuid; n_shared uuid; d_private uuid; d_shared uuid; c uuid; c_priv uuid; s_a uuid; n_b uuid;
-  qz uuid; q1 uuid; q2 uuid; att uuid; sess uuid; t_end timestamptz;
+  qz uuid; q1 uuid; q2 uuid; att uuid; sess uuid; t_end timestamptz; s1 uuid; s2 uuid; s3 uuid; s4 uuid;
   cnt int;
   rm uuid; m1 uuid; m2 uuid; st uuid; tk uuid; k text;
 begin
@@ -120,7 +120,7 @@ begin
 
   -- study sessions: plausible, within a day, non-overlapping; xp_earned is set by the server (0006–0008)
   t_end := now() - interval '1 minute';
-  while exists (select 1 from public.study_sessions where user_id = a
+  while exists (select 1 from public.study_sessions where user_id in (a, b)
                 and tstzrange(started_at, ended_at, '[)') && tstzrange(t_end - interval '26 minutes', t_end, '[)')) loop
     t_end := t_end - interval '30 minutes';
   end loop;
@@ -279,6 +279,52 @@ begin
   assert (select count(*) from public.notifications where user_id = a and dedupe_key = 'due:' || tk) = 1,
     'refresh_reminders did not remind exactly once';
 
+  -- ── Phase 2: studying together, Our Space data (0014)
+  t_end := now() - interval '2 minutes';
+  while exists (select 1 from public.study_sessions where user_id in (a, b)
+                and tstzrange(started_at, ended_at, '[)') && tstzrange(t_end - interval '50 minutes', t_end, '[)')) loop
+    t_end := t_end - interval '55 minutes';
+  end loop;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, room_id)
+  values (a, 'custom', t_end - interval '50 minutes', t_end - interval '25 minutes', 1500, gen_random_uuid()) returning id into s1;
+  execute 'reset role';
+  assert (select room_id is null from public.study_sessions where id = s1), 'an unknown room_id was kept';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, room_id)
+  values (b, 'custom', t_end - interval '40 minutes', t_end - interval '20 minutes', 1200, rm) returning id into s2;
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
+  values (b, 'custom', t_end - interval '19 minutes', t_end - interval '1 minute', 1080) returning id into s3;
+  execute 'reset role';
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
+  values (a, 'custom', t_end - interval '24 minutes', t_end - interval '15 minutes', 540) returning id into s4;
+  execute 'reset role';
+  assert (select together from public.study_sessions where id = s2), 'a 15-minute overlap did not mark the new session together';
+  assert (select together from public.study_sessions where id = s1), 'the partner''s overlapping session was not marked together';
+  assert not (select together from public.study_sessions where id = s3), 'a non-overlapping session was marked together';
+  assert not (select together from public.study_sessions where id = s4), 'a 4-minute overlap was marked together';
+  assert exists (select 1 from public.user_achievements where user_id = a and achievement_code = 'binary_star'),
+    'Binary Star was not unlocked for the partner';
+
+  update public.profiles set preferences = jsonb_set(preferences, '{privacy}', '{"shareActivity": false}') where id = a;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert (select count(*) from public.get_space_stats(now() - interval '7 days')) = 2, 'space stats should have one row per member';
+  assert not exists (select 1 from public.space_feed(100) where user_id = a), 'A hid their activity but B still sees it';
+  assert exists (select 1 from public.space_feed(100) where user_id = b), 'B does not see their own activity';
+  execute 'reset role';
+  update public.profiles set preferences = preferences #- '{privacy,shareActivity}' where id = a;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert not exists (select 1 from public.space_feed(100) where title in ('RLS A private', 'RLS quiz', 'RLS A deck private')),
+    'space_feed leaked a private title';
+  assert exists (select 1 from public.space_feed(100) where kind = 'shared_note' and ref_id = n_shared), 'shared note missing from the feed';
+  execute 'reset role';
+
   -- ── a signed-in account that is not a member cannot invite
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
@@ -287,6 +333,8 @@ begin
     assert false, 'a non-member could invite';
   exception when insufficient_privilege then null;
   end;
+  assert (select count(*) from public.get_space_stats(now())) = 0, 'a non-member read space stats';
+  assert (select count(*) from public.space_feed(30)) = 0, 'a non-member read the space feed';
   execute 'reset role';
 
   raise exception 'RLS CHECKS PASSED';
