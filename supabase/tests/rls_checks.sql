@@ -9,11 +9,16 @@ declare
   n_private uuid; n_shared uuid; d_private uuid; d_shared uuid; c uuid; c_priv uuid; s_a uuid; n_b uuid;
   qz uuid; q1 uuid; q2 uuid; att uuid; sess uuid; t_end timestamptz;
   cnt int;
+  rm uuid; m1 uuid; m2 uuid; st uuid; tk uuid; k text;
 begin
   select id into a from public.profiles order by created_at limit 1;
   select id into b from public.profiles where id <> a order by created_at limit 1;
   assert a is not null and b is not null, 'run this after both members have signed up';
   assert (select count(*) from public.profiles) = 2, 'StudySpace should have exactly two members';
+
+  -- notification switches start from their defaults (all on) for these checks (0013)
+  update public.profiles set preferences = preferences #- '{notifications,kinds}' where id in (a, b);
+  select id into rm from public.study_rooms order by created_at limit 1;
 
   -- ── storage: no HTML/SVG/script uploads (0010)
   assert not exists (
@@ -201,6 +206,78 @@ begin
   exception when check_violation then null;
   end;
   execute 'reset role';
+
+  -- ── Phase 2: chat + notifications (0013)
+  assert exists (select 1 from public.notifications where user_id = b and dedupe_key like 'shared_note:' || n_shared || ':%'),
+    'sharing a note did not notify the partner';
+  assert (select count(*) from pg_policies where schemaname = 'realtime' and tablename = 'messages' and policyname like 'ss room members%') = 2,
+    'room channel policies are missing';
+  update public.profiles set preferences = jsonb_set(preferences, '{notifications}', '{"kinds": {"message": true}}') where id = b;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert private.is_room_topic('room:' || rm), 'Our Room topic not recognised';
+  assert not private.is_room_topic('room:' || gen_random_uuid()), 'an unknown room topic was accepted';
+  foreach k in array array['system', 'listing'] loop
+    begin
+      insert into public.messages (room_id, sender_id, kind, body) values (rm, a, k, 'forged');
+      assert false, format('a %s message was accepted', k);
+    exception when check_violation then null;
+    end;
+  end loop;
+  begin
+    insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', repeat('x', 141));
+    assert false, 'a 141-character shooting star was accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'text', '   ');
+    assert false, 'an empty message was accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.messages (room_id, sender_id, kind, attachment_path, attachment_name, attachment_mime)
+    values (rm, a, 'file', b::text || '/x.pdf', 'x.pdf', 'application/pdf');
+    assert false, 'a file from the partner folder was attached';
+  exception when check_violation then null;
+  end;
+  insert into public.messages (room_id, sender_id, kind, body, created_at) values (rm, a, 'text', '  hello  ', now() - interval '3 days')
+  returning id into m1;
+  assert (select body = 'hello' and created_at = now() from public.messages where id = m1), 'body/created_at were not set by the server';
+  begin
+    update public.messages set body = 'edited' where id = m1;
+    assert false, 'a message body was edited';
+  exception when insufficient_privilege then null;
+  end;
+  update public.messages set deleted_at = now() where id = m1;
+  assert (select body = '' and deleted_at is not null from public.messages where id = m1), 'deleting did not blank the message';
+  begin
+    update public.messages set deleted_at = null where id = m1;
+    assert false, 'a deleted message was restored';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.message_reactions (message_id, user_id, emoji) values (m1, a, '🔥');
+    assert false, 'reacted to a deleted message';
+  exception when others then if sqlerrm like '%row-level security%' then null; else raise; end if;
+  end;
+  insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', 'You got this') returning id into st;
+  execute 'reset role';
+  assert exists (select 1 from public.notifications where user_id = b and dedupe_key = 'star:' || st and link = '/chat'),
+    'a shooting star did not notify the partner';
+  update public.profiles set preferences = jsonb_set(preferences, '{notifications}', '{"kinds": {"message": false}}') where id = b;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', 'Water break?') returning id into m2;
+  insert into public.tasks (owner_id, title, kind, due_at) values (a, 'RLS due soon', 'deadline', now() + interval '2 hours') returning id into tk;
+  perform public.refresh_reminders();
+  perform public.refresh_reminders();
+  execute 'reset role';
+  assert not exists (select 1 from public.notifications where user_id = b and dedupe_key = 'star:' || m2),
+    'a switched-off notification kind was delivered';
+  assert (select count(*) from public.notifications where user_id = a and dedupe_key = 'due:' || tk) = 1,
+    'refresh_reminders did not remind exactly once';
 
   -- ── a signed-in account that is not a member cannot invite
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
