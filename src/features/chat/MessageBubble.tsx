@@ -57,6 +57,7 @@ export function MessageBubble({ m, highlight }: { m: ChatMessage; highlight?: bo
     setReacting(false);
     react.mutate({ messageId: m.id, emoji, mine: m.reactions.some((r) => r.user_id === user?.id && r.emoji === emoji) });
   };
+  const copy = () => { void navigator.clipboard?.writeText(m.body); setReacting(false); toast('Copied'); };
   // long-press on touch opens the reaction bar (hover handles it on desktop)
   const onPointerDown = (e: PointerEvent) => {
     if (e.pointerType !== 'touch' || deleted || m.pending) return;
@@ -111,7 +112,7 @@ export function MessageBubble({ m, highlight }: { m: ChatMessage; highlight?: bo
             {m.body && <Text body={m.body} />}
           </>)}
         </div>
-        {reacting && <div className={cn('absolute -top-12 z-10', mine ? 'right-0' : 'left-0')}><ReactionBar onPick={pick} onDelete={mine && !deleted && !m.pending ? () => { setReacting(false); setConfirming(true); } : undefined} /></div>}
+        {reacting && <div className={cn('absolute -top-12 z-10', mine ? 'right-0' : 'left-0')}><ReactionBar onPick={pick} onCopy={!deleted && m.kind !== 'file' ? copy : undefined} onDelete={mine && !deleted && !m.pending ? () => { setReacting(false); setConfirming(true); } : undefined} /></div>}
       </div>
       {counts.size > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -130,7 +131,7 @@ export function MessageBubble({ m, highlight }: { m: ChatMessage; highlight?: bo
           <button className="inline-flex items-center gap-1 underline" onClick={() => outbox.discard(m.id)}><X className="size-3" /> Discard</button>
         </div>
       )}
-      <ConfirmDialog open={confirming} onOpenChange={setConfirming} title="Delete this message?" body="It disappears for both of you." confirmLabel="Delete" danger
+      <ConfirmDialog open={confirming} onOpenChange={setConfirming} title="Delete this message?" body="It’s removed from the chat for both of you." confirmLabel="Delete" danger
         onConfirm={() => del.mutateAsync(m)} />
     </div>
   );

@@ -70,4 +70,14 @@ describe('parseOrbitMessage', () => {
     expect(parseOrbitMessage({ type: 'sync', orbitId: 'o1', by: 'a', durationMs: 1, remainingMs: 1, status: 'exploded' })).toBeNull();
     expect(parseOrbitMessage({ type: 'launch' })).toBeNull();
   });
+  it('rejects a zero or sub-minute duration and remaining time beyond the duration', () => {
+    const ok = { orbitId: 'o1', by: 'a', durationMs: 25 * MIN, remainingMs: 25 * MIN };
+    expect(parseOrbitMessage({ type: 'start', ...ok })).not.toBeNull();
+    expect(parseOrbitMessage({ type: 'start', ...ok, durationMs: 0, remainingMs: 0 })).toBeNull();
+    expect(parseOrbitMessage({ type: 'start', ...ok, durationMs: MIN - 1, remainingMs: 0 })).toBeNull();
+    expect(parseOrbitMessage({ type: 'start', ...ok, remainingMs: 25 * MIN + 1 })).toBeNull();
+    expect(parseOrbitMessage({ type: 'sync', ...ok, status: 'running' })).not.toBeNull();
+    expect(parseOrbitMessage({ type: 'sync', ...ok, status: 'running', durationMs: 0 })).toBeNull();
+    expect(parseOrbitMessage({ type: 'sync', ...ok, status: 'paused', remainingMs: 26 * MIN })).toBeNull();
+  });
 });

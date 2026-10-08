@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { DEFAULT_TZ } from '@/features/gamification/streak';
 import { groupMessages } from './grouping';
 import { MessageBubble } from './MessageBubble';
+import { prefersReducedMotion } from '@/lib/motion';
 import { shouldRestore } from './touch';
 import type { ChatMessage } from './types';
 
@@ -60,7 +61,7 @@ export function MessageList({ messages, hasOlder, loadOlder, highlightId, footer
     }
   };
   const toBottom = () => {
-    box.current?.scrollTo({ top: box.current.scrollHeight, behavior: 'smooth' });
+    box.current?.scrollTo({ top: box.current.scrollHeight, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     setShowPill(false);
   };
 

@@ -43,6 +43,9 @@ export const toSync = (o: Orbit, now: number): OrbitMessage =>
 
 const MAX_MS = 4 * 3_600_000;
 const isMs = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= MAX_MS;
+/** A usable orbit: at least a minute long, and never more time left than the whole orbit. */
+const isSpan = (durationMs: unknown, remainingMs: unknown): durationMs is number =>
+  isMs(durationMs) && durationMs >= 60_000 && isMs(remainingMs) && remainingMs <= durationMs;
 const isId = (v: unknown): v is string => typeof v === 'string' && v.length > 0 && v.length <= 64;
 
 /** Validates a broadcast payload from the partner; anything unexpected is dropped. */
@@ -53,12 +56,12 @@ export function parseOrbitMessage(p: unknown): OrbitMessage | null {
     case 'hello':
       return { type: 'hello' };
     case 'start':
-      return isId(m.orbitId) && isId(m.by) && isMs(m.durationMs) && isMs(m.remainingMs)
+      return isId(m.orbitId) && isId(m.by) && isSpan(m.durationMs, m.remainingMs) && isMs(m.remainingMs)
         ? { type: 'start', orbitId: m.orbitId, by: m.by, durationMs: m.durationMs, remainingMs: m.remainingMs } : null;
     case 'pause': case 'resume': case 'end':
       return isId(m.orbitId) && isMs(m.remainingMs) ? { type: m.type as 'pause' | 'resume' | 'end', orbitId: m.orbitId, remainingMs: m.remainingMs } : null;
     case 'sync':
-      return isId(m.orbitId) && isId(m.by) && isMs(m.durationMs) && isMs(m.remainingMs) && (m.status === 'running' || m.status === 'paused' || m.status === 'ended')
+      return isId(m.orbitId) && isId(m.by) && isSpan(m.durationMs, m.remainingMs) && isMs(m.remainingMs) && (m.status === 'running' || m.status === 'paused' || m.status === 'ended')
         ? { type: 'sync', orbitId: m.orbitId, by: m.by, durationMs: m.durationMs, status: m.status, remainingMs: m.remainingMs } : null;
     default:
       return null;

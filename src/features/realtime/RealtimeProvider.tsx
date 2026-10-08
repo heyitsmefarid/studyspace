@@ -88,7 +88,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     if (!uid || !roomId) return;
     let disposed = false;
     let attempt = 0;
-    let lost = false;
+    let needsResync = true; // the first connect also refreshes: rows may have arrived before the channel was live
     let retry: number | undefined;
     const connect = () => {
       const ch = supabase.channel(`room:${roomId}`, { config: { private: true, presence: { key: uid } } });
@@ -107,14 +107,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           live.current = true;
           attempt = 0;
           setStatus('live');
-          if (lost) {
-            lost = false;
+          if (needsResync) {
+            needsResync = false;
             for (const queryKey of RESYNC_KEYS) void qc.invalidateQueries({ queryKey });
           }
           track.current();
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' || s === 'CLOSED') {
           live.current = false;
-          lost = true;
+          needsResync = true;
           setStatus('reconnecting');
           setPresence({});
           channel.current = null;

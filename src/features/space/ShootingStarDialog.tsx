@@ -70,7 +70,7 @@ export function ShootingStarButton({ variant = 'button' }: { variant?: 'icon' | 
 export function CheerButton({ item }: { item: FeedItem }) {
   const { send, busy } = useSendStar();
   return (
-    <button onClick={() => void send(cheerFor(item))} disabled={busy}
+    <button onClick={() => void send(cheerFor(item))} disabled={busy} aria-label={`Cheer ${item.title}`}
       className="shrink-0 rounded-full border border-gold/40 px-3 py-1 text-xs font-semibold text-gold hover:bg-gold-soft disabled:opacity-50">
       Cheer
     </button>

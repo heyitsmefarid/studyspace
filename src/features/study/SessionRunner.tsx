@@ -88,7 +88,7 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
   const { orbit, pause: pauseOrbit, resume: resumeOrbit, end: endOrbit } = useOrbit();
   const shared = active.orbitId && orbit?.id === active.orbitId ? orbit : null;
   const remaining = shared ? orbitRemaining(shared, now) : remainingMs(timer, now);
-  const progress = shared ? 1 - orbitRemaining(shared, now) / shared.durationMs : phaseProgress(timer, now);
+  const progress = shared ? Math.min(1, Math.max(0, 1 - orbitRemaining(shared, now) / shared.durationMs)) : phaseProgress(timer, now);
   const setMyStatus = useSetMyStatus();
   const finishRef = useRef(onFinish);
   useEffect(() => { finishRef.current = onFinish; });
@@ -107,7 +107,8 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
   useEffect(() => {
     const t = Date.now();
     const left = shared ? orbitRemaining(shared, t) : remainingMs(timer, t);
-    setMyStatus({ status: 'studying', subject: subjectName, endsAt: left === null ? null : t + left });
+    const ticking = shared ? shared.status === 'running' : timer.running; // a paused timer has no end time
+    setMyStatus({ status: 'studying', subject: subjectName, endsAt: left === null || !ticking ? null : t + left });
     return () => setMyStatus({ status: 'online' });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on pause/phase changes, not every tick
   }, [subjectName, timer.phase, timer.running, shared?.status, setMyStatus]);

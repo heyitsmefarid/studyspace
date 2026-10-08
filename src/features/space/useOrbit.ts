@@ -45,5 +45,10 @@ export function useOrbitSync() {
     }
     set(orbitReducer(current, m, Date.now()));
   });
-  useEffect(() => { if (status === 'live') send('orbit', { type: 'hello' }); }, [status, send]);
+  useEffect(() => {
+    if (status !== 'live') return;
+    send('orbit', { type: 'hello' });
+    // messages sent while the channel was down were lost: re-announce our current orbit
+    if (current && !isOver(current, Date.now())) send('orbit', { ...toSync(current, Date.now()) });
+  }, [status, send]);
 }

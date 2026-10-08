@@ -11,12 +11,12 @@ const TARGET_LABEL: Record<GoalKind, string> = {
   weekly_minutes: 'Target (minutes per week)', weekly_cards: 'Target (cards per week)', weekly_quizzes: 'Target (quizzes per week)', custom: 'Target',
 };
 
-export function GoalDialog({ open, onOpenChange, goal }: { open: boolean; onOpenChange: (o: boolean) => void; goal?: Goal }) {
+export function GoalDialog({ open, onOpenChange, goal, defaultShared }: { open: boolean; onOpenChange: (o: boolean) => void; goal?: Goal; defaultShared?: boolean }) {
   const { preferences } = useAuth();
   const save = useSaveGoal();
   const [form, setForm] = useState(() => goal
     ? { title: goal.title, kind: goal.kind, target: goal.target, is_shared: goal.is_shared, due_date: goal.due_date }
-    : { title: '', kind: 'weekly_minutes', target: 300, is_shared: preferences.privacy.shareByDefault, due_date: null as string | null });
+    : { title: '', kind: 'weekly_minutes', target: 300, is_shared: defaultShared ?? preferences.privacy.shareByDefault, due_date: null as string | null });
   const [errors, setErrors] = useState<Partial<Record<'title' | 'kind' | 'target', string>>>({});
 
   async function submit() {

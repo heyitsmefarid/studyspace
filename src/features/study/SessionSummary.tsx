@@ -15,6 +15,7 @@ import { useXpSince } from '@/features/gamification/api';
 import { effectiveStreak, todayInZone, DEFAULT_TZ } from '@/features/gamification/streak';
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { completeTaskOccurrence, taskKeys } from '@/features/planner/api';
+import { useTableChange } from '@/features/realtime/useRealtime';
 import { saveStudySession } from './api';
 import type { FinishedStudy } from './finish';
 
@@ -42,6 +43,10 @@ export function SessionSummary({ data, onSaved, onAgain, onDiscard }: {
   const [error, setError] = useState('');
   const [together, setTogether] = useState(false);
   const started = useRef(false);
+  // The first member to save is marked `together` by the server only when the partner's session lands.
+  useTableChange('study_sessions', (c) => {
+    if (c.eventType === 'UPDATE' && c.new.id === data.sessionId && c.new.together === true) setTogether(true);
+  });
   const xp = useXpSince(status === 'saved' ? data.startedAtIso : null);
   const shownXp = useCountUp(xp);
 
