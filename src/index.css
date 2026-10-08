@@ -320,3 +320,13 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 
 .chip-dragging { opacity: .6; translate: 0 -2px; box-shadow: var(--glow); }
 .drop-glow { box-shadow: inset 0 0 0 2px var(--primary-soft); background-color: color-mix(in oklab, var(--primary) 6%, transparent); }
+
+/* Shooting-star overlay (ShootingStarOverlay.tsx): a star crosses the screen while the message card fades in and out. */
+.star-flight { animation: star-flight 2.5s var(--ease-soft) both; }
+.star-card { animation: star-card 2.5s var(--ease-soft) both; }
+@keyframes star-flight {
+  from { transform: translate3d(-60vw, 12vh, 0) rotate(-8deg); opacity: 0; }
+  15% { opacity: 1; }
+  to { transform: translate3d(130vw, -8vh, 0) rotate(-8deg); opacity: 0; }
+}
+@keyframes star-card { 0% { opacity: 0; transform: translateY(8px); } 20%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }

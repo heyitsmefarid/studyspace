@@ -9,6 +9,7 @@ import { OfflineBanner } from './OfflineBanner';
 import { RealtimeProvider } from '@/features/realtime/RealtimeProvider';
 import { ConnectionBanner } from '@/features/realtime/ConnectionBanner';
 import { LiveSync } from './LiveSync';
+import { ShootingStarOverlay } from '@/features/space/ShootingStarOverlay';
 
 export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -29,6 +30,7 @@ export function AppShell() {
         <OfflineBanner />
         <ConnectionBanner />
         <LiveSync />
+        <ShootingStarOverlay />
         <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       </div>
     </RealtimeProvider>

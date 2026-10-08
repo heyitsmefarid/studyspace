@@ -13,6 +13,7 @@ import { loadAround, useMessages, useOutbox } from './api';
 import { flatten, type MessagePages } from './cache';
 import { ChatHeader } from './ChatHeader';
 import { Composer } from './Composer';
+import { ShootingStarButton } from '@/features/space/ShootingStarDialog';
 import { MessageList } from './MessageList';
 import { SearchPanel } from './SearchPanel';
 import { TypingIndicator } from './TypingIndicator';
@@ -75,7 +76,7 @@ export default function ChatPage() {
         />
       )}
       {!messages.isPending && live.length === 0 && !around && <p className="text-center text-sm text-ink-muted">Say hi, this is your shared corner of the sky ✦</p>}
-      <Composer onTyping={notifyTyping} />
+      <Composer onTyping={notifyTyping} extra={<ShootingStarButton variant="icon" />} />
       <SearchPanel open={searching} onOpenChange={setSearching} onPick={(m) => void jump(m)} />
     </div>
   );
