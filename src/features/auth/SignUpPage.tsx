@@ -10,6 +10,7 @@ import { useAuth } from './AuthProvider';
 import { AuthLayout, StarBurst } from './AuthLayout';
 import { PasswordInput } from './PasswordInput';
 import { validateSignUp, type SignUpInput } from './signUpForm';
+import { SKY_LINKS, signUpProgress } from './skyProgress';
 
 export default function SignUpPage() {
   const { session, profile, loading, refreshProfile } = useAuth();
@@ -20,8 +21,9 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const shake = () => replayAnimation(formRef.current, 'animate-shake');
   const [burst, setBurst] = useState(false);
+  const [stumble, setStumble] = useState(0);
+  const shake = () => { setStumble((n) => n + 1); replayAnimation(formRef.current, 'animate-shake'); };
 
   if (!loading && session && profile && !burst) return <Navigate to="/" replace />;
   const set = (k: keyof SignUpInput) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -49,7 +51,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout progress={checkEmail ? SKY_LINKS : signUpProgress(form)} celebrate={burst} stumble={stumble}>
       {checkEmail ? (
         <div className="animate-rise-in">
           <h1 className="mt-6 font-display text-2xl">Check your email</h1>

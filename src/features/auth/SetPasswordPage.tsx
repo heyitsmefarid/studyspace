@@ -10,6 +10,7 @@ import { ConstellationLoader } from '@/components/sky/ConstellationLoader';
 import { useAuth } from './AuthProvider';
 import { AuthLayout } from './AuthLayout';
 import { PasswordInput } from './PasswordInput';
+import { passwordProgress } from './skyProgress';
 
 export default function SetPasswordPage() {
   const { session, loading } = useAuth();
@@ -18,6 +19,8 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stumble, setStumble] = useState(0);
+  const fail = (message: string) => { setError(message); setStumble((n) => n + 1); };
 
   if (loading) return <div className="grid min-h-dvh place-items-center"><ConstellationLoader label="Checking your link…" /></div>;
   if (!session) {
@@ -31,18 +34,19 @@ export default function SetPasswordPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (password.length < 8) return setError('Use at least 8 characters.');
-    if (password !== confirm) return setError("Those passwords don't match.");
+    if (password.length < 8) return fail('Use at least 8 characters.');
+    if (password !== confirm) return fail("Those passwords don't match.");
     setBusy(true); setError(null);
     const { error: err } = await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (err) return setError(friendlyMessage(err));
+    if (err) return fail(friendlyMessage(err));
     toast.success('Password updated ✦');
     navigate('/', { replace: true });
   }
 
   return (
-    <AuthLayout>
+    // The account already exists, so its first link is lit.
+    <AuthLayout progress={1 + passwordProgress(password, confirm)} stumble={stumble}>
         <h1 className="mt-6 font-display text-2xl">Choose a new password</h1>
         <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4">
           <Field label="New password">

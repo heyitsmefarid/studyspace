@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router';
 import { ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Logo, LogoMark } from '@/components/sky/Logo';
+import { ThemeToggle } from '@/components/sky/ThemeToggle';
 import { Badge } from '@/components/ui/Badge';
 import { NAV } from './nav';
 import { ProfileChip } from './ProfileChip';
@@ -32,9 +33,12 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       <div className="mb-4 flex items-center justify-between px-2 pt-2">
         <Link to="/" aria-label="StudySpace home">{collapsed ? <LogoMark /> : <Logo />}</Link>
         {!collapsed && (
-          <button onClick={toggle} className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Collapse sidebar">
-            <ChevronsLeft className="size-4" />
-          </button>
+          <span className="flex items-center gap-0.5">
+            <ThemeToggle className="size-8" />
+            <button onClick={toggle} className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Collapse sidebar">
+              <ChevronsLeft className="size-4" />
+            </button>
+          </span>
         )}
       </div>
 
@@ -75,9 +79,12 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
 
       <div className="mt-3 border-t border-line pt-3">
         {collapsed ? (
-          <button onClick={toggle} className="mx-auto flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
-            <ChevronsRight className="size-4" />
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <ThemeToggle />
+            <button onClick={toggle} className="flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
+              <ChevronsRight className="size-4" />
+            </button>
+          </div>
         ) : (
           <ProfileChip />
         )}

@@ -3,8 +3,8 @@ import type { Session } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase, type Tables } from '@/lib/supabase';
 import { AppError, friendlyMessage, unwrap } from '@/lib/errors';
-import { readPreferences, type Preferences } from '@/lib/preferences';
-import { applyTheme } from '@/lib/theme';
+import { mergePreferences, readPreferences, type Preferences } from '@/lib/preferences';
+import { accountTheme, applyTheme, readThemePref } from '@/lib/theme';
 
 export type Profile = Tables<'profiles'>;
 
@@ -40,7 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const partner = profiles.data?.find((p) => p.id !== uid) ?? null;
   const preferences = useMemo(() => readPreferences(profile?.preferences), [profile?.preferences]);
 
-  useEffect(() => { if (profile) applyTheme(preferences.theme); }, [profile, preferences.theme]);
+  useEffect(() => {
+    if (!profile) return;
+    const { pref, adopt } = accountTheme(profile.preferences, readThemePref());
+    applyTheme(pref);
+    // A fresh account keeps the theme picked before signing up. Best-effort: this device remembers it either way.
+    if (adopt) {
+      void supabase.from('profiles').update({ preferences: mergePreferences(preferences, { theme: pref }) }).eq('id', profile.id)
+        .then(() => qc.invalidateQueries({ queryKey: ['profiles'] }));
+    }
+  }, [profile, preferences, qc]);
   useEffect(() => {
     const root = document.documentElement.style;
     if (profile) root.setProperty('--star-me', profile.star_color);
