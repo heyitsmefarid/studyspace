@@ -19,4 +19,7 @@ describe('routes keep same-page navigations on one route', () => {
     expect(leaf('/notes')).not.toBe(leaf('/notes/a'));
     expect(leaf('/planner')).not.toBe(leaf('/planner/ai'));
   });
+  it('Market is gone: /market falls through to the 404 page', () => {
+    expect(leaf('/market').path).toBe('*');
+  });
 });

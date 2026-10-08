@@ -62,7 +62,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       </button>
 
       <nav aria-label="Main" className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        {NAV.map(({ to, label, icon: Icon, phase }) => (
+        {NAV.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -78,7 +78,6 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
               <Icon className="size-5 shrink-0" aria-hidden />
               {!collapsed && <span className="flex-1">{label}</span>}
               {!collapsed && to === '/chat' && unreadMessages > 0 && <Badge tone="coral">{unreadMessages > 9 ? '9+' : unreadMessages}</Badge>}
-              {!collapsed && phase === 2 && <Badge>soon</Badge>}
               {!collapsed && isActive && <span aria-hidden className="size-1.5 animate-pop-in rounded-full bg-gold shadow-[0_0_8px_var(--gold)]" />}
             </>)}
           </NavLink>

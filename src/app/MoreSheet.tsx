@@ -9,7 +9,7 @@ export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="More">
       <div className="stagger grid grid-cols-2 gap-3 [--stagger-step:30ms]">
-        {MORE_ITEMS.map(({ to, label, icon: Icon, phase }) => (
+        {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
@@ -20,7 +20,6 @@ export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
             <span className="flex w-full items-center justify-between text-sm font-semibold">
               {label}
               {to === '/chat' && unreadMessages > 0 && <Badge tone="coral">{unreadMessages}</Badge>}
-              {phase === 2 && <Badge>soon</Badge>}
             </span>
           </Link>
         ))}

@@ -42,7 +42,6 @@ export const routes: RouteObject[] = [
           r('settings/:section?', () => import('@/features/settings/SettingsPage')),
           r('space', () => import('@/features/space/SpacePage')),
           r('chat', () => import('@/features/chat/ChatPage')),
-          { path: 'market', element: <Placeholder title="Market" /> },
           r('notifications', () => import('@/features/notifications/NotificationsPage')),
           { path: '*', element: <Placeholder title="Lost in space" body="That page doesn't exist." /> },
         ],
