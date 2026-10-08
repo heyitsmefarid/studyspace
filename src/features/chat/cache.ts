@@ -37,3 +37,6 @@ export function applyReaction(data: MessagePages | undefined, r: Reaction & { me
 
 /** Oldest-first list for rendering. */
 export const flatten = (data: MessagePages | undefined): ChatMessage[] => (data ? data.pages.flat().reverse() : []);
+
+/** Cursor for the next (older) page: the oldest message's time while the page was full; live messages prepended to the newest page can push it past PAGE. */
+export const nextPageParam = (page: ChatMessage[], pageSize: number): string | undefined => (page.length >= pageSize ? page[page.length - 1]!.created_at : undefined);

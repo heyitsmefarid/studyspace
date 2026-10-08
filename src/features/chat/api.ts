@@ -5,7 +5,7 @@ import { AppError, assertOk, friendlyMessage, unwrap } from '@/lib/errors';
 import { objectPath, removeFile, safeContentType, safeFileName } from '@/lib/storage';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useOurRoom } from '@/features/realtime/RealtimeProvider';
-import { applyReaction, dropMessage, upsertMessage, type MessagePages } from './cache';
+import { applyReaction, dropMessage, nextPageParam, upsertMessage, type MessagePages } from './cache';
 import { escapeLike } from './rules';
 import type { ChatMessage, Reaction } from './types';
 
@@ -34,7 +34,7 @@ export function useMessages() {
       if (pageParam) q = q.lt('created_at', pageParam);
       return unwrap(await q).map(toMessage);
     },
-    getNextPageParam: (last) => (last.length === PAGE ? last[last.length - 1]!.created_at : undefined),
+    getNextPageParam: (last) => nextPageParam(last, PAGE),
   });
 }
 

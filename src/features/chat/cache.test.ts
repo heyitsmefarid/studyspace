@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyReaction, dropMessage, flatten, upsertMessage, type MessagePages } from './cache';
+import { applyReaction, dropMessage, flatten, nextPageParam, upsertMessage, type MessagePages } from './cache';
 import type { ChatMessage } from './types';
 
 const m = (id: string, over: Partial<ChatMessage> = {}): ChatMessage => ({
@@ -37,5 +37,11 @@ describe('chat cache', () => {
   it('drops a discarded message and leaves an empty cache alone', () => {
     expect(flatten(dropMessage(pages([m('a'), m('b')]), 'a')).map((x) => x.id)).toEqual(['b']);
     expect(upsertMessage(undefined, m('a'))).toBeUndefined();
+  });
+  it('a newest page that grew past the page size through live messages still offers older pages', () => {
+    const page = (n: number) => Array.from({ length: n }, (_, i) => m(`m${i}`, { created_at: `2026-10-06T01:${String(59 - i).padStart(2, '0')}:00Z` }));
+    expect(nextPageParam(page(51), 50)).toBe(page(51)[50]!.created_at);
+    expect(nextPageParam(page(50), 50)).toBe(page(50)[49]!.created_at);
+    expect(nextPageParam(page(49), 50)).toBeUndefined();
   });
 });
