@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router';
-import { ChevronLeft, ChevronRight, Heart, KeyRound, LogOut, Palette, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
+import { Bell, ChevronLeft, ChevronRight, Heart, KeyRound, LogOut, Palette, Shield, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -9,6 +9,8 @@ import { ProfileSection } from './sections/ProfileSection';
 import { SubjectsSection } from './sections/SubjectsSection';
 import { PasswordSection } from './sections/PasswordSection';
 import { AppearanceSection } from './sections/AppearanceSection';
+import { NotificationsSection } from './sections/NotificationsSection';
+import { PrivacySection } from './sections/PrivacySection';
 import { StudySection } from './sections/StudySection';
 import { AiSection } from './sections/AiSection';
 import { PartnerSection } from './sections/PartnerSection';
@@ -19,6 +21,8 @@ const SECTIONS: { id: string; label: string; icon: LucideIcon; render: () => Rea
   { id: 'subjects', label: 'Subjects', icon: Tags, render: () => <SubjectsSection /> },
   { id: 'password', label: 'Password', icon: KeyRound, render: () => <PasswordSection /> },
   { id: 'appearance', label: 'Appearance', icon: Palette, render: () => <AppearanceSection /> },
+  { id: 'notifications', label: 'Notifications', icon: Bell, render: () => <NotificationsSection /> },
+  { id: 'privacy', label: 'Privacy', icon: Shield, render: () => <PrivacySection /> },
   { id: 'study', label: 'Study', icon: Timer, render: () => <StudySection /> },
   { id: 'nova', label: 'Nova', icon: Sparkles, render: () => <AiSection /> },
 ];
