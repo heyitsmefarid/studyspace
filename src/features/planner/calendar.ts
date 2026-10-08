@@ -1,12 +1,17 @@
 import type { DragEvent } from 'react';
 import {
-  addDays, addMonths, addWeeks, differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, parseISO, startOfDay,
+  addDays, addMonths, addWeeks, differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, isValid, parseISO, startOfDay,
   startOfMonth, startOfWeek, subDays,
 } from 'date-fns';
 
 export type CalendarView = 'month' | 'week' | 'day';
 export const CALENDAR_VIEWS: readonly CalendarView[] = ['month', 'week', 'day'];
 export const TASK_DRAG_TYPE = 'text/task-id';
+
+/** Resolve a date from the planner URL before calendar calculations and task defaults use it. */
+export function resolveDateKey(dateParam: string | null, todayKey: string): string {
+  return dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) && isValid(parseISO(dateParam)) ? dateParam : todayKey;
+}
 
 /** Visible range for a view around `dateKey` (YYYY-MM-DD): start inclusive, end exclusive, plus each day. */
 export function rangeFor(view: CalendarView, dateKey: string): { start: Date; end: Date; days: Date[] } {

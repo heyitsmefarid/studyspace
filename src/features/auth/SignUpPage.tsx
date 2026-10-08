@@ -33,21 +33,21 @@ export default function SignUpPage() {
     const v = validateSignUp(form);
     if (!v.ok) { setErrors(v.errors); shake(); return; }
     setErrors({}); setError(null); setBusy(true);
-    const { data, error: err } = await supabase.auth.signUp({
-      email: v.value.email,
-      password: v.value.password,
-      options: { emailRedirectTo: `${location.origin}/login` },
-    });
-    setBusy(false);
-    if (err) { setError(friendlyMessage(err)); shake(); return; }
-    if (data.session) {
-      setBurst(true);
-      await refreshProfile();
-      await new Promise((r) => setTimeout(r, prefersReducedMotion() ? 0 : 450));
-      navigate('/onboarding', { replace: true });
-    } else {
-      setCheckEmail(true);
-    }
+    try {
+      const { data, error: err } = await supabase.auth.signUp({
+        email: v.value.email,
+        password: v.value.password,
+        options: { emailRedirectTo: `${location.origin}/login` },
+      });
+      if (err) { setError(friendlyMessage(err)); shake(); return; }
+      if (data.session) {
+        setBurst(true);
+        await refreshProfile();
+        await new Promise((r) => setTimeout(r, prefersReducedMotion() ? 0 : 450));
+        navigate('/onboarding', { replace: true });
+      } else setCheckEmail(true);
+    } catch (err) { setError(friendlyMessage(err)); shake(); }
+    finally { setBusy(false); }
   }
 
   return (

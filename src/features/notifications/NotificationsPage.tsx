@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { QueryError } from '@/components/ui/QueryError';
 import { groupByDay } from '@/lib/days';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { DEFAULT_TZ } from '@/features/gamification/streak';
@@ -25,7 +26,8 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Notifications" actions={<Button variant="secondary" disabled={total === 0} onClick={() => markRead.mutate('all')}>Mark all read</Button>} />
       {list.isPending && <Skeleton className="h-60" />}
-      {!list.isPending && groups.length === 0 && <EmptyState title="All quiet in your sky" body="Reminders, messages and shared notes will land here." />}
+      {list.isError && <QueryError error={list.error} onRetry={list.refetch} retrying={list.isFetching} />}
+      {!list.isPending && !list.isError && groups.length === 0 && <EmptyState title="All quiet in your sky" body="Reminders, messages and shared notes will land here." />}
       <div className="flex flex-col gap-6">
         {groups.map((g) => (
           <section key={g.key} aria-label={g.label}>

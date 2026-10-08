@@ -4,7 +4,7 @@ import { parseJsonLoose, type Finalized } from './postprocess.ts';
 import { repairMessage } from './prompts.ts';
 
 export interface RunDeps {
-  providers: Record<ProviderName, AIProvider>;
+  providers: Record<ProviderName, AIProvider> & { geminiFallback?: AIProvider };
   sleep?: (ms: number) => Promise<void>;
   timeoutMs?: number;
 }
@@ -43,9 +43,12 @@ function check(task: AiTask, rawInput: unknown, providers: RunDeps['providers'])
     return { ok: false, error: fail('BAD_INPUT', first ? `${first.path.join('.') || 'input'}: ${first.message}` : 'Invalid request.') };
   }
   const primary = primaryFor(task, parsed.data);
-  const order = [primary, primary === 'gemini' ? 'groq' : 'gemini']
-    .map((n) => providers[n as ProviderName])
-    .filter((p): p is AIProvider => Boolean(p?.available));
+  const candidates = task === 'scan_attachment'
+    ? [providers.gemini, providers.geminiFallback]
+    : [providers[primary], providers[primary === 'gemini' ? 'groq' : 'gemini']];
+  const order = candidates
+    .filter((p): p is AIProvider => Boolean(p?.available))
+    .filter((p, i, all) => all.findIndex((other) => other.name === p.name && other.model === p.model) === i);
   if (order.length === 0) {
     return { ok: false, error: fail('PROVIDER_UNAVAILABLE', "Nova isn't connected to an AI provider yet — add the API keys in Supabase.", false) };
   }
@@ -77,6 +80,7 @@ export async function runTask(task: AiTask, rawInput: unknown, deps: RunDeps): P
       ...(def.structured && def.jsonSchema ? { jsonSchema: def.jsonSchema } : {}),
       temperature: def.temperature,
       maxOutputTokens: def.maxOutputTokens,
+      ...(task === 'scan_attachment' ? { media: { mimeType: (input as { mimeType: string }).mimeType, data: (input as { data: string }).data } } : {}),
     };
 
     let text: string | null = null;

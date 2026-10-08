@@ -2,11 +2,11 @@ import type { z } from 'zod';
 import type { AiTask, ChatMessage, ProviderName } from './types.ts';
 import {
   ExplainInputSchema, FlashcardsInputSchema, JSON_SHAPES, PracticeInputSchema, QuizAnalysisInputSchema, QuizInputSchema,
-  RecommendationsInputSchema, SimplifyInputSchema, StudyGuideInputSchema, StudyPlanInputSchema, SummarizeInputSchema, TutorInputSchema,
+  RecommendationsInputSchema, ScanAttachmentInputSchema, SimplifyInputSchema, StudyGuideInputSchema, StudyPlanInputSchema, SummarizeInputSchema, TutorInputSchema,
 } from './schemas.ts';
 import {
   buildAnalysisPrompt, buildFlashcardsPrompt, buildPlanPrompt, buildPracticePrompt, buildQuizPrompt, buildRecommendationsPrompt,
-  buildSourcePrompt, buildTutorPrompt, EXPLAIN_SYSTEM_PROMPT, SIMPLIFY_SYSTEM_PROMPT, STUDY_GUIDE_SYSTEM_PROMPT, SUMMARY_SYSTEM_PROMPT,
+  buildSourcePrompt, buildTutorPrompt, EXPLAIN_SYSTEM_PROMPT, SCAN_ATTACHMENT_SYSTEM_PROMPT, SIMPLIFY_SYSTEM_PROMPT, STUDY_GUIDE_SYSTEM_PROMPT, SUMMARY_SYSTEM_PROMPT,
 } from './prompts.ts';
 import {
   finalizeAnalysis, finalizeFlashcards, finalizePlan, finalizePractice, finalizeQuiz, finalizeRecommendations, finalizeText, type Finalized,
@@ -37,6 +37,7 @@ export const TASK_DEFS: Record<AiTask, TaskDef> = {
   explain: def({ input: ExplainInputSchema, structured: false, temperature: 0.4, maxOutputTokens: 4096, build: (i) => buildSourcePrompt(EXPLAIN_SYSTEM_PROMPT, i), finalize: (r) => finalizeText(r) }),
   simplify: def({ input: SimplifyInputSchema, structured: false, temperature: 0.3, maxOutputTokens: 8192, build: (i) => buildSourcePrompt(SIMPLIFY_SYSTEM_PROMPT, i), finalize: (r) => finalizeText(r) }),
   study_guide: def({ input: StudyGuideInputSchema, structured: false, temperature: 0.4, maxOutputTokens: 8192, build: (i) => buildSourcePrompt(STUDY_GUIDE_SYSTEM_PROMPT, i), finalize: (r) => finalizeText(r) }),
+  scan_attachment: def({ input: ScanAttachmentInputSchema, structured: false, temperature: 0.2, maxOutputTokens: 4096, build: (i) => ({ system: SCAN_ATTACHMENT_SYSTEM_PROMPT, messages: [{ role: 'user', content: `Scan this attachment${i.title ? ` titled "${i.title}"` : ''}${i.subject ? ` for ${i.subject}` : ''}.` }] }), finalize: (r) => finalizeText(r) }),
   flashcards: def({ input: FlashcardsInputSchema, structured: true, temperature: 0.5, maxOutputTokens: 8192, jsonSchema: JSON_SHAPES.flashcards, build: buildFlashcardsPrompt, finalize: finalizeFlashcards }),
   quiz: def({ input: QuizInputSchema, structured: true, temperature: 0.5, maxOutputTokens: 8192, jsonSchema: JSON_SHAPES.quiz, build: buildQuizPrompt, finalize: finalizeQuiz }),
   practice: def({ input: PracticeInputSchema, structured: true, primary: 'groq', temperature: 0.6, maxOutputTokens: 4096, jsonSchema: JSON_SHAPES.practice, build: buildPracticePrompt, finalize: finalizePractice }),

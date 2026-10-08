@@ -3,6 +3,7 @@ import { supabase, type Tables } from '@/lib/supabase';
 import { AppError, assertOk, unwrap } from '@/lib/errors';
 import { objectPath, removeFile, safeContentType, safeFileName, uploadFile } from '@/lib/storage';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { assertScannable, bytesToBase64 } from './attachmentScan';
 
 export type Attachment = Tables<'note_attachments'>;
 const MAX = 10 * 1024 * 1024;
@@ -24,6 +25,19 @@ export async function attachmentUrl(a: Attachment, inline: boolean): Promise<str
     .createSignedUrl(a.storage_path, 300, inline ? undefined : { download: a.file_name });
   if (error) throw error;
   return data.signedUrl;
+}
+
+export async function scanNoteAttachment(a: Attachment): Promise<string> {
+  assertScannable(a.size_bytes, a.mime_type);
+  const url = await attachmentUrl(a, false);
+  const response = await fetch(url);
+  if (!response.ok) throw new AppError('Nova could not read that attachment.');
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  assertScannable(bytes.byteLength, a.mime_type);
+  const { scanAttachment } = await import('@/services/ai/aiService');
+  const result = await scanAttachment({ data: bytesToBase64(bytes), mimeType: a.mime_type, title: a.file_name });
+  if (!result.ok) throw new AppError(result.error.message);
+  return result.data.text;
 }
 
 export function useAttachments(noteId: string) {
@@ -51,4 +65,8 @@ export function useDeleteAttachment(noteId: string) {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['attachments', noteId] }),
   });
+}
+
+export function useScanAttachment() {
+  return useMutation({ mutationFn: scanNoteAttachment });
 }

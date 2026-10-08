@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { QueryError } from '@/components/ui/QueryError';
 import { generateStudyPlan } from '@/services/ai/aiService';
 import type { PlanResult, StudyPlanInput } from '@/services/ai/schemas';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -86,6 +87,7 @@ export default function AiPlannerPage() {
     <div className="mx-auto max-w-6xl">
       <Link to="/planner" className="mb-2 inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="size-4" /> Planner</Link>
       <PageHeader title="Plan with Nova" subtitle="Tell Nova about your exam — it charts the sessions, you tweak them, then they land on your calendar." />
+      {plans.isError && <QueryError error={plans.error} onRetry={plans.refetch} retrying={plans.isFetching} />}
 
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,380px)_1fr]">
         <Card className="self-start">

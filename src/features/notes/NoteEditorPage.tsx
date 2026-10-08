@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
+import { AppError } from '@/lib/errors';
 import type { JSONContent } from '@tiptap/react';
 import { ArrowLeft, Copy, MoreHorizontal, Pin, Share2, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +9,7 @@ import { Menu } from '@/components/ui/Menu';
 import { Select } from '@/components/ui/Field';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useHotkey } from '@/app/useHotkey';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -130,7 +132,8 @@ export default function NoteEditorPage() {
   const { id } = useParams();
   const note = useNote(id);
   if (note.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-6 w-1/3" /><Skeleton className="h-96" /></div>;
-  if (note.isError || !note.data) {
+  if (note.isError && !(note.error instanceof AppError && note.error.code === 'PGRST116')) return <QueryError error={note.error} onRetry={note.refetch} retrying={note.isFetching} />;
+  if (!note.data) {
     return <EmptyState title="This note drifted away" body="It may have been deleted, or it isn't shared with you." action={<Link to="/notes" className="text-primary underline">Back to notes</Link>} />;
   }
   return <EditorBody key={note.data.id} note={note.data} />;

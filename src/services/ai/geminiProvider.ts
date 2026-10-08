@@ -14,7 +14,7 @@ export function createGeminiProvider(opts: { apiKey?: string; model?: string; fe
 
   const body = (req: ProviderRequest, withSchema: boolean) => JSON.stringify({
     systemInstruction: { parts: [{ text: req.system }] },
-    contents: req.messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+    contents: req.messages.map((m, i) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }, ...(i === req.messages.length - 1 && req.media ? [{ inlineData: { mimeType: req.media.mimeType, data: req.media.data } }] : [])] })),
     generationConfig: {
       temperature: req.temperature,
       maxOutputTokens: req.maxOutputTokens,

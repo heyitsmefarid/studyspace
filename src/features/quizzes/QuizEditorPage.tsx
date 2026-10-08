@@ -8,6 +8,7 @@ import { Field, Input, Textarea } from '@/components/ui/Field';
 import { Switch } from '@/components/ui/Switch';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { SubjectPicker } from '@/features/subjects/SubjectPicker';
@@ -120,6 +121,7 @@ export default function QuizEditorPage() {
   const { id } = useParams();
   const q = useQuiz(id);
   if (q.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-48" /></div>;
+  if (q.isError) return <QueryError error={q.error} onRetry={q.refetch} retrying={q.isFetching} />;
   if (!q.data) return <EmptyState title="This quiz drifted away" action={<Link to="/quizzes" className="text-primary underline">Back to quizzes</Link>} />;
   return <Editor key={q.data.quiz.id} quiz={q.data.quiz} initial={q.data.questions} />;
 }

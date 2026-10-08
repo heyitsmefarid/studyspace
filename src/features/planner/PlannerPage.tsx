@@ -5,9 +5,10 @@ import { ChevronLeft, ChevronRight, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { QueryError } from '@/components/ui/QueryError';
 import { Tabs } from '@/components/ui/Tabs';
 import { useTasksInRange, useMoveTask, useToggleComplete, useUndatedTasks, type Task } from './api';
-import { CALENDAR_VIEWS, groupByDate, rangeFor, shiftDate, type CalendarView } from './calendar';
+import { CALENDAR_VIEWS, groupByDate, rangeFor, resolveDateKey, shiftDate, type CalendarView } from './calendar';
 import type { Occurrence } from './recurrence';
 import type { TaskForm } from './taskForm';
 import { MonthView } from './MonthView';
@@ -17,7 +18,6 @@ import { TaskChip } from './TaskChip';
 import { TaskDialog } from './TaskDialog';
 
 const VIEW_ITEMS = [{ value: 'month', label: 'Month' }, { value: 'week', label: 'Week' }, { value: 'day', label: 'Day' }] as const;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function titleFor(view: CalendarView, dateKey: string, days: Date[]): string {
   const d = parseISO(dateKey);
@@ -30,6 +30,7 @@ function titleFor(view: CalendarView, dateKey: string, days: Date[]): string {
 function Someday({ onOpen, onToggle }: { onOpen: (t: Task) => void; onToggle: (t: Task, done: boolean, doneOn: string | null) => void }) {
   const q = useUndatedTasks();
   const tasks = q.data ?? [];
+  if (q.isError) return <QueryError error={q.error} onRetry={q.refetch} retrying={q.isFetching} />;
   if (tasks.length === 0) return null;
   const items = tasks
     .map((t) => ({ task: t, doneOn: t.task_completions[0]?.occurrence_date ?? null }))
@@ -60,9 +61,9 @@ export default function PlannerPage() {
   const viewParam = params.get('view') as CalendarView | null;
   const view: CalendarView = viewParam && CALENDAR_VIEWS.includes(viewParam) ? viewParam : fallbackView;
   const dateParam = params.get('date');
-  const dateKey = dateParam && DATE_RE.test(dateParam) ? dateParam : todayKey;
+  const dateKey = resolveDateKey(dateParam, todayKey);
   const range = useMemo(() => rangeFor(view, dateKey), [view, dateKey]);
-  const { occurrences, completions, isPending } = useTasksInRange(range.start, range.end);
+  const { occurrences, completions, isPending, error, refetch, isFetching } = useTasksInRange(range.start, range.end);
   const byDate = useMemo(() => groupByDate(occurrences), [occurrences]);
   const undated = useUndatedTasks();
   const toggle = useToggleComplete();
@@ -118,7 +119,7 @@ export default function PlannerPage() {
       </div>
 
       <div key={view} className="animate-fade-in">
-      {isPending ? (
+      {error ? <QueryError error={error} onRetry={refetch} retrying={isFetching} /> : isPending ? (
         <Skeleton className={view === 'day' ? 'h-40' : 'h-96'} />
       ) : view === 'month' ? (
         <MonthView {...common} month={parseISO(dateKey).getMonth()} onDayClick={(d) => go({ view: 'day', date: d })} onDrop={onDrop} />

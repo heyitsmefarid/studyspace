@@ -12,11 +12,16 @@ export interface QuizSource {
 }
 
 const clampN = (v: string | null, dflt: number, max: number) => Math.min(max, Math.max(1, Number(v) || dflt));
+const validMinutes = (raw: string | null): number | null => {
+  if (!raw) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 1 ? Math.min(240, value) : null;
+};
 
-async function resolve(params: URLSearchParams, quizId?: string): Promise<QuizSource> {
+export async function resolveQuizSource(params: URLSearchParams, quizId?: string): Promise<QuizSource> {
   const rng = mulberry32(Date.now() % 2 ** 31);
   const mode = (params.get('mode') ?? 'practice') as AttemptMode;
-  const minutes = params.get('minutes') ? Number(params.get('minutes')) : null;
+  const minutes = validMinutes(params.get('minutes'));
 
   if (quizId) {
     const quiz = unwrap(await supabase.from('quizzes').select('*').eq('id', quizId).single());
@@ -26,7 +31,7 @@ async function resolve(params: URLSearchParams, quizId?: string): Promise<QuizSo
     return {
       title: quiz.title, mode: timed ? 'timed' : 'practice', quizId, subjectId: quiz.subject_id,
       questions: prepareQuestions(rows.map(questionFromRow), { shuffleOptions: true, rng }),
-      timeLimitSeconds: timed ? (minutes ? minutes * 60 : quiz.time_limit_seconds ?? rows.length * 60) : null,
+      timeLimitSeconds: timed ? (minutes !== null ? minutes * 60 : quiz.time_limit_seconds ?? rows.length * 60) : null,
     };
   }
 
@@ -37,7 +42,7 @@ async function resolve(params: URLSearchParams, quizId?: string): Promise<QuizSo
     const cards = unwrap(await supabase.from('flashcards').select('id, type, front, back, options, correct_answer, topic, difficulty').eq('deck_id', deckId));
     const built = buildDeckQuiz(cards, rng, clampN(params.get('n'), 10, 50));
     if (!built.ok) throw new Error('Add at least 4 cards to quiz yourself on this deck.');
-    return { title: `${deck.title} quiz`, mode: 'deck', quizId: null, subjectId: deck.subject_id, questions: built.questions, timeLimitSeconds: minutes ? minutes * 60 : null };
+    return { title: `${deck.title} quiz`, mode: 'deck', quizId: null, subjectId: deck.subject_id, questions: built.questions, timeLimitSeconds: minutes !== null ? minutes * 60 : null };
   }
 
   if (mode === 'subject') {
@@ -49,7 +54,7 @@ async function resolve(params: URLSearchParams, quizId?: string): Promise<QuizSo
     return {
       title: `${subject.name} mix`, mode: 'subject', quizId: null, subjectId,
       questions: prepareQuestions(rows.map((r) => questionFromRow(r)), { shuffleQuestions: true, shuffleOptions: true, limit: clampN(params.get('n'), 15, 50), rng }),
-      timeLimitSeconds: minutes ? minutes * 60 : null,
+      timeLimitSeconds: minutes !== null ? minutes * 60 : null,
     };
   }
 
@@ -66,7 +71,7 @@ async function resolve(params: URLSearchParams, quizId?: string): Promise<QuizSo
   return {
     title: 'Random mix', mode: 'random', quizId: null, subjectId: null,
     questions: prepareQuestions(unique, { shuffleQuestions: true, shuffleOptions: true, limit: clampN(params.get('n'), 10, 50), rng }),
-    timeLimitSeconds: minutes ? minutes * 60 : null,
+    timeLimitSeconds: minutes !== null ? minutes * 60 : null,
   };
 }
 
@@ -74,7 +79,7 @@ export function useQuizSource(params: URLSearchParams, quizId?: string) {
   const key = params.toString();
   const q = useQuery({
     queryKey: ['quiz-source', quizId ?? null, key],
-    queryFn: () => resolve(new URLSearchParams(key), quizId),
+    queryFn: () => resolveQuizSource(new URLSearchParams(key), quizId),
     staleTime: Infinity,
     gcTime: 0,
     retry: false,

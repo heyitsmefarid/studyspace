@@ -51,5 +51,8 @@ export function useStatsData() {
     completedTasks: completions.data ?? 0,
     totalFocusSeconds,
     isPending: sessions.isPending || attempts.isPending || reviews.isPending || completions.isPending || deckStats.isPending,
+    error: sessions.error ?? attempts.error ?? reviews.error ?? completions.error ?? deckStats.error,
+    isFetching: sessions.isFetching || attempts.isFetching || reviews.isFetching || completions.isFetching || deckStats.isFetching,
+    refetch: () => Promise.all([sessions.refetch(), attempts.refetch(), reviews.refetch(), completions.refetch(), deckStats.refetch()]),
   };
 }

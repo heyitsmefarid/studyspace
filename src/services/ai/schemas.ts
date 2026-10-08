@@ -25,6 +25,7 @@ const looseEnum = <const T extends readonly [string, ...string[]]>(values: T, fa
 // ───────────── inputs
 export const ChatMessageSchema = z.object({ role: z.enum(['user', 'assistant']), content: str(8000) });
 const SourceSchema = z.object({ text: str(MAX_SOURCE_CHARS), title: optStr(200), subject: optStr(80) });
+export const ScanAttachmentInputSchema = z.object({ data: z.string().min(32).max(12_000_000), mimeType: z.string().trim().min(3).max(120), title: optStr(200), subject: optStr(80) });
 
 export const TutorInputSchema = z.object({
   mode: z.enum(TUTOR_MODES),
@@ -80,6 +81,7 @@ export const RecommendationsInputSchema = z.object({
 
 export type TutorInput = z.input<typeof TutorInputSchema>;
 export type SourceInput = z.input<typeof SourceSchema>;
+export type ScanAttachmentInput = z.input<typeof ScanAttachmentInputSchema>;
 export type ExplainInput = z.input<typeof ExplainInputSchema>;
 export type FlashcardsInput = z.input<typeof FlashcardsInputSchema>;
 export type QuizInput = z.input<typeof QuizInputSchema>;

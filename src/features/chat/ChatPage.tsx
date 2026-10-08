@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { friendlyMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useOurRoom } from '@/features/realtime/RealtimeProvider';
@@ -22,7 +23,8 @@ import type { ChatMessage } from './types';
 
 export default function ChatPage() {
   const { partner } = useAuth();
-  const room = useOurRoom().data;
+  const roomQuery = useOurRoom();
+  const room = roomQuery.data;
   const messages = useMessages();
   const { partnerTyping, notifyTyping } = useTyping();
   const { messageIds } = useUnread();
@@ -56,6 +58,11 @@ export default function ChatPage() {
     catch (e) { toast.error(friendlyMessage(e)); }
   };
   const live = flatten(messages.data as MessagePages | undefined);
+
+  if (roomQuery.isError || messages.isError) {
+    const failed = roomQuery.isError ? roomQuery : messages;
+    return <QueryError error={failed.error} onRetry={() => failed.refetch()} retrying={failed.isFetching} />;
+  }
 
   return (
     <div className="flex h-[calc(100dvh-11rem)] min-h-96 flex-col gap-3 md:h-[calc(100dvh-5rem)]">

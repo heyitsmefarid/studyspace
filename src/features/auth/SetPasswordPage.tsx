@@ -37,11 +37,13 @@ export default function SetPasswordPage() {
     if (password.length < 8) return fail('Use at least 8 characters.');
     if (password !== confirm) return fail("Those passwords don't match.");
     setBusy(true); setError(null);
-    const { error: err } = await supabase.auth.updateUser({ password });
-    setBusy(false);
-    if (err) return fail(friendlyMessage(err));
-    toast.success('Password updated ✦');
-    navigate('/', { replace: true });
+    try {
+      const { error: err } = await supabase.auth.updateUser({ password });
+      if (err) return fail(friendlyMessage(err));
+      toast.success('Password updated ✦');
+      navigate('/', { replace: true });
+    } catch (err) { fail(friendlyMessage(err)); }
+    finally { setBusy(false); }
   }
 
   return (

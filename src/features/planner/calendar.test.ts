@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { format } from 'date-fns';
-import { countdownLabel, groupByDate, rangeFor, shiftDate } from './calendar';
+import { countdownLabel, groupByDate, rangeFor, resolveDateKey, shiftDate } from './calendar';
 
 const key = (d: Date) => format(d, 'yyyy-MM-dd');
+
+describe('resolveDateKey', () => {
+  it.each(['2026-10-06', '2024-02-29', '2000-02-29'])('keeps the valid calendar date %s', (date) => {
+    expect(resolveDateKey(date, '2026-10-09')).toBe(date);
+  });
+
+  it.each([null, '', 'not-a-date', '2026-2-03', '2026-10-06T12:00:00', '2026-99-99', '2026-00-10', '2026-10-00', '2026-02-29', '1900-02-29', '2026-04-31'])('falls back to today for an invalid calendar date: %s', (date) => {
+    const dateKey = resolveDateKey(date, '2026-10-09');
+    expect(dateKey).toBe('2026-10-09');
+    for (const view of ['month', 'week', 'day'] as const) {
+      expect(rangeFor(view, dateKey).days.map(key)).toContain('2026-10-09');
+      expect(() => shiftDate(view, dateKey, 1)).not.toThrow();
+    }
+  });
+});
 
 describe('rangeFor', () => {
   it('month view covers whole weeks around the month (Sunday start, end exclusive)', () => {

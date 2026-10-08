@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ProgressRing } from '@/components/ui/Progress';
 import { useAttempt, useReviewSuggestions } from './api';
 import { useAttemptXp } from '@/features/gamification/api';
@@ -49,6 +50,7 @@ export default function ResultsPage() {
   const xp = useAttemptXp(q.data?.id);
 
   if (q.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-32" /><Skeleton className="h-60" /></div>;
+  if (q.isError) return <QueryError error={q.error} onRetry={q.refetch} retrying={q.isFetching} />;
   if (!q.data) return <EmptyState title="Result not found" action={<Link to="/quizzes" className="text-primary underline">Back to quizzes</Link>} />;
   const a = q.data;
   const perfect = a.total >= 5 && a.score === a.total;
