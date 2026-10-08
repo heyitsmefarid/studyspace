@@ -11,11 +11,11 @@ export type StudySession = Tables<'study_sessions'>;
  * Inserts with the client-generated session id, so a retry after a lost response is recognised: the server's overlap
  * guard rejects the duplicate, and finding our own row means the first attempt already saved it.
  */
-export async function saveStudySession(i: { id: string; subjectId: string | null; taskId: string | null; mode: TimerMode; startedAt: string; endedAt: string; focusSeconds: number; cardsStudied: number; questionsAnswered: number; correctAnswers: number }) {
+export async function saveStudySession(i: { id: string; subjectId: string | null; taskId: string | null; mode: TimerMode; startedAt: string; endedAt: string; focusSeconds: number; cardsStudied: number; questionsAnswered: number; correctAnswers: number; roomId: string | null }) {
   const { data: { user } } = await supabase.auth.getUser();
   const res = await supabase.from('study_sessions').insert({
     id: i.id, user_id: user!.id, subject_id: i.subjectId, task_id: i.taskId, mode: i.mode, started_at: i.startedAt, ended_at: i.endedAt,
-    focus_seconds: i.focusSeconds, cards_studied: i.cardsStudied, questions_answered: i.questionsAnswered, correct_answers: i.correctAnswers,
+    focus_seconds: i.focusSeconds, cards_studied: i.cardsStudied, questions_answered: i.questionsAnswered, correct_answers: i.correctAnswers, room_id: i.roomId,
   }).select().single();
   if (!res.error) return unwrap(res);
   const existing = await supabase.from('study_sessions').select('*').eq('id', i.id).maybeSingle();

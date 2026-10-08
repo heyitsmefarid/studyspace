@@ -9,7 +9,11 @@ import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { OrbitTimer } from '@/components/sky/OrbitTimer';
+import { Avatar } from '@/components/sky/Avatar';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useOrbit } from '@/features/space/useOrbit';
+import { isOver, orbitRemaining } from '@/features/space/orbit';
+import { useSetMyStatus } from '@/features/realtime/useRealtime';
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { SubjectDot } from '@/features/subjects/SubjectDot';
 import { ReviewSession } from '@/features/flashcards/ReviewSession';
@@ -80,7 +84,33 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
   const [small] = useState(() => !window.matchMedia('(min-width: 640px)').matches);
   const subject = subjectById(subjects.data, active.subjectId);
   const isBreak = timer.phase !== 'focus';
-  const remaining = remainingMs(timer, now);
+  const { partner } = useAuth();
+  const { orbit, pause: pauseOrbit, resume: resumeOrbit, end: endOrbit } = useOrbit();
+  const shared = active.orbitId && orbit?.id === active.orbitId ? orbit : null;
+  const remaining = shared ? orbitRemaining(shared, now) : remainingMs(timer, now);
+  const progress = shared ? 1 - orbitRemaining(shared, now) / shared.durationMs : phaseProgress(timer, now);
+  const setMyStatus = useSetMyStatus();
+  const finishRef = useRef(onFinish);
+  useEffect(() => { finishRef.current = onFinish; });
+
+  // The shared orbit drives the local timer: pauses and resumes follow it, and its end finishes the session.
+  useEffect(() => {
+    if (!shared) return;
+    const t = Date.now();
+    if (isOver(shared, t)) { finishRef.current(); return; }
+    if (shared.status === 'paused' && timer.running) dispatch({ type: 'pause', now: t });
+    if (shared.status === 'running' && !timer.running) dispatch({ type: 'resume', now: t });
+  }, [shared, now, timer.running, dispatch]);
+
+  // Presence: "Studying <subject> · n min left" for the partner.
+  const subjectName = subject?.name ?? null;
+  useEffect(() => {
+    const t = Date.now();
+    const left = shared ? orbitRemaining(shared, t) : remainingMs(timer, t);
+    setMyStatus({ status: 'studying', subject: subjectName, endsAt: left === null ? null : t + left });
+    return () => setMyStatus({ status: 'online' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh on pause/phase changes, not every tick
+  }, [subjectName, timer.phase, timer.running, shared?.status, setMyStatus]);
   const focusMs = totalFocusMs(timer, now);
   const elapsedMs = now - Date.parse(active.startedAtIso);
 
@@ -102,7 +132,10 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
   }, [remaining, focusMs, timer.phase]);
 
   // Space toggles pause (ignored while typing or when a control has focus).
-  const toggle = () => dispatch({ type: timer.running ? 'pause' : 'resume', now: Date.now() });
+  const toggle = () => {
+    if (shared) { if (shared.status === 'running') pauseOrbit(); else resumeOrbit(); return; }
+    dispatch({ type: timer.running ? 'pause' : 'resume', now: Date.now() });
+  };
   const toggleRef = useRef(toggle);
   useEffect(() => { toggleRef.current = toggle; });
   useEffect(() => {
@@ -129,6 +162,7 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
             <p className="flex items-center gap-2 truncate font-semibold">
               {subject && <SubjectDot color={subject.color} />}{subject?.name ?? 'Study session'}
             </p>
+            {shared && <p className="text-xs font-semibold text-gold">Studying together with {partner?.display_name || 'your partner'} ✦</p>}
             <p className="text-xs text-ink-muted tabular">Session {formatDuration(elapsedMs / 1000)} · focus {formatDuration(focusMs / 1000)}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setExitOpen(true)}><X className="size-4" /> Exit</Button>
@@ -137,7 +171,7 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
         <p className="sr-only" aria-live="polite">{announce}</p>
 
         <div className="flex flex-col items-center gap-5">
-          <OrbitTimer progress={phaseProgress(timer, now)} phase={timer.phase} remaining={remaining} elapsed={focusMs} completed={timer.completedFocus} size={small ? 240 : 300} />
+          <OrbitTimer progress={progress} companion={shared && partner ? <Avatar profile={partner} size={28} /> : undefined} phase={timer.phase} remaining={remaining} elapsed={focusMs} completed={timer.completedFocus} size={small ? 240 : 300} />
           {!timer.running && <p className="text-sm font-semibold text-gold">Paused</p>}
           <div className="flex flex-wrap justify-center gap-2">
             <Button variant={timer.running ? 'secondary' : 'primary'} onClick={toggle} aria-keyshortcuts="Space">
@@ -163,13 +197,13 @@ export function SessionRunner({ active, now, dispatch, count, onFinish }: {
       <Dialog open={exitOpen} onOpenChange={setExitOpen} title="Leave study mode?" size="sm"
         description={`You've focused for ${formatDuration(focusMs / 1000)}.`}
         footer={<><Button variant="secondary" onClick={() => setExitOpen(false)}>Keep studying</Button>
-          <Button onClick={() => { setExitOpen(false); onFinish(); }}>Finish &amp; save</Button></>}>
+          <Button onClick={() => { setExitOpen(false); if (shared) endOrbit(); onFinish(); }}>Finish &amp; save</Button></>}>
         <p className="text-sm text-ink-muted">Finishing saves your session as a new star.</p>
       </Dialog>
       <Dialog open={finishOpen} onOpenChange={setFinishOpen} title="Finish this session?" size="sm"
         description={`Focus so far: ${formatDuration(focusMs / 1000)}.`}
         footer={<><Button variant="secondary" onClick={() => setFinishOpen(false)}>Not yet</Button>
-          <Button variant="gold" onClick={() => { setFinishOpen(false); onFinish(); }}>Finish</Button></>}>
+          <Button variant="gold" onClick={() => { setFinishOpen(false); if (shared) endOrbit(); onFinish(); }}>Finish</Button></>}>
         <p className="text-sm text-ink-muted">{focusMs < 60_000 ? "Sessions under a minute aren't saved." : 'Nice work — let’s add it to your sky.'}</p>
       </Dialog>
     </div>
