@@ -7,6 +7,8 @@ import { ThemeToggle } from '@/components/sky/ThemeToggle';
 import { Badge } from '@/components/ui/Badge';
 import { NAV } from './nav';
 import { ProfileChip } from './ProfileChip';
+import { useAuth } from '@/features/auth/AuthProvider';
+import { PartnerAvatar } from '@/features/realtime/PartnerAvatar';
 
 const KEY = 'ss.sidebar';
 
@@ -15,6 +17,7 @@ function readCollapsed(): boolean {
 }
 
 export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
+  const { partner } = useAuth();
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const toggle = () => {
     setCollapsed((c) => {
@@ -80,13 +83,21 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       <div className="mt-3 border-t border-line pt-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
+            {partner && <Link to="/space" className="rounded-full p-1 hover:bg-surface-2" aria-label="Our Space"><PartnerAvatar size={28} /></Link>}
             <ThemeToggle />
             <button onClick={toggle} className="flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
               <ChevronsRight className="size-4" />
             </button>
           </div>
         ) : (
-          <ProfileChip />
+          <div className="flex items-center gap-1">
+            <div className="min-w-0 flex-1"><ProfileChip /></div>
+            {partner && (
+              <Link to="/space" className="rounded-full p-1 hover:bg-surface-2" aria-label="Our Space">
+                <PartnerAvatar size={32} />
+              </Link>
+            )}
+          </div>
         )}
       </div>
     </aside>
