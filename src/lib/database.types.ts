@@ -1492,17 +1492,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      invite_partner: {
-        Args: { p_email: string }
-        Returns: undefined
-      }
-      pending_invite: {
-        Args: never
-        Returns: string
-      }
       complete_flashcard_session: {
         Args: { p_session_key: string }
         Returns: number
+      }
+      get_space_stats: {
+        Args: { p_week_start: string }
+        Returns: {
+          achievements: number
+          cards_total: number
+          cards_week: number
+          current_streak: number
+          focus_seconds_total: number
+          focus_seconds_week: number
+          last_active_date: string
+          longest_streak: number
+          quizzes_total: number
+          quizzes_week: number
+          together_seconds_total: number
+          user_id: string
+        }[]
+      }
+      invite_partner: { Args: { p_email: string }; Returns: undefined }
+      pending_invite: { Args: never; Returns: string }
+      refresh_reminders: { Args: never; Returns: undefined }
+      reserve_ai_request: {
+        Args: {
+          p_per_day: number
+          p_per_minute: number
+          p_task: string
+          p_user: string
+        }
+        Returns: {
+          allowed: boolean
+          code: string
+          request_id: string
+          used_today: number
+        }[]
       }
       search_notes: {
         Args: { q: string }
@@ -1527,6 +1553,17 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      space_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          at: string
+          detail: Json
+          kind: string
+          ref_id: string
+          title: string
+          user_id: string
+        }[]
       }
     }
     Enums: {

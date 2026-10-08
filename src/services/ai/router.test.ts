@@ -27,6 +27,38 @@ const CARDS = JSON.stringify({ cards: [
 const note = { text: 'Mitochondria make ATP which powers the cell.', count: 5 };
 
 describe('runTask', () => {
+  it('scans the same PDF with a second Gemini model when the primary is overloaded', async () => {
+    const gemini = fake('gemini', [new ProviderError('unavailable', '503 high demand'), new ProviderError('unavailable', '503 high demand')]);
+    const geminiFallback = { ...fake('gemini', ['A summary of the attached PDF.']), model: 'gemini-fallback' };
+    const groq = fake('groq', ['Must never receive binary attachments']);
+    const providers = { gemini, groq, geminiFallback };
+    const input = { data: 'JVBERi0xLjcKJXN0dWR5c3BhY2UtdGVzdAo=', mimeType: 'application/pdf', title: 'Study.pdf' };
+
+    const result = await runTask('scan_attachment', input, { providers, sleep });
+
+    expect(result).toMatchObject({ ok: true, data: { text: 'A summary of the attached PDF.' }, meta: { provider: 'gemini', model: 'gemini-fallback', fellBack: true } });
+    expect(geminiFallback.calls[0]?.media).toEqual({ data: input.data, mimeType: 'application/pdf' });
+    expect(groq.calls).toHaveLength(0);
+  });
+  it('does not resubmit an attachment to a fallback configured with the same model', async () => {
+    const gemini = fake('gemini', [new ProviderError('unavailable', '503'), new ProviderError('unavailable', '503')]);
+    const geminiFallback = fake('gemini', ['Duplicate model']);
+    const groq = fake('groq', []);
+    const providers = { gemini, groq, geminiFallback };
+    const result = await runTask('scan_attachment', { data: 'JVBERi0xLjcKJXN0dWR5c3BhY2UtdGVzdAo=', mimeType: 'application/pdf' }, { providers, sleep });
+    expect(result.ok).toBe(false);
+    expect(geminiFallback.calls).toHaveLength(0);
+    expect(groq.calls).toHaveLength(0);
+  });
+  it('keeps the Groq fallback for text tasks when an attachment fallback is configured', async () => {
+    const gemini = fake('gemini', [new ProviderError('auth', 'bad key')]);
+    const geminiFallback = { ...fake('gemini', ['Unused']), model: 'gemini-fallback' };
+    const groq = fake('groq', ['Text summary']);
+    const providers = { gemini, groq, geminiFallback };
+    const result = await runTask('summarize', { text: 'notes' }, { providers, sleep });
+    expect(result).toMatchObject({ ok: true, data: { text: 'Text summary' }, meta: { provider: 'groq' } });
+    expect(geminiFallback.calls).toHaveLength(0);
+  });
   it('returns Gemini results without fallback', async () => {
     const gemini = fake('gemini', ['A clear summary.']); const groq = fake('groq', []);
     const r = await runTask('summarize', { text: 'notes' }, { providers: { gemini, groq }, sleep });

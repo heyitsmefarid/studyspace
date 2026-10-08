@@ -21,7 +21,7 @@ import { saveStudySession } from './api';
 const input = {
   id: '11111111-1111-4111-8111-111111111111', subjectId: null, taskId: null, mode: 'custom' as const,
   startedAt: '2026-10-06T10:00:00.000Z', endedAt: '2026-10-06T10:30:00.000Z', focusSeconds: 1800,
-  cardsStudied: 0, questionsAnswered: 0, correctAnswers: 0,
+  cardsStudied: 0, questionsAnswered: 0, correctAnswers: 0, roomId: null,
 };
 
 describe('saveStudySession (review I1)', () => {

@@ -235,6 +235,75 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
   100% { opacity: 0; transform: translate(300px, 130px); }
 }
 
+/* Auth living sky (LivingSky.tsx). Theme tokens pick dawn (sun, pale hills) or night (aurora, dark hills). */
+.sky-gradient { background: linear-gradient(to bottom, var(--sky-top), var(--sky-horizon)); }
+.sky-sun {
+  position: absolute; left: 54%; bottom: 8%; width: min(48%, 320px); aspect-ratio: 1; border-radius: 9999px;
+  background: radial-gradient(circle, var(--sun-core) 0 17%, var(--sun-glow) 32%, transparent 68%);
+  opacity: var(--sun-opacity); transition: opacity 600ms var(--ease-soft);
+}
+.sky-aurora {
+  position: absolute; inset: -10% -25% 35% -25%; filter: blur(28px);
+  background:
+    radial-gradient(38% 46% at 28% 62%, var(--aurora-1), transparent 70%),
+    radial-gradient(30% 40% at 62% 44%, var(--aurora-2), transparent 70%),
+    radial-gradient(26% 36% at 86% 58%, var(--aurora-1), transparent 70%);
+  opacity: var(--aurora-opacity); transition: opacity 600ms var(--ease-soft);
+}
+.sky-dust { opacity: var(--sky-dust-opacity); }
+/* Depth layers drift against the pointer (--px/--py from parallax.ts); nearer layers (higher --depth) move further. */
+.sky-layer {
+  transform: translate3d(calc(var(--px, 0) * var(--depth, 0) * -14px), calc(var(--py, 0) * var(--depth, 0) * -9px), 0);
+  transition: transform 900ms var(--ease-soft);
+}
+.sky-guide { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 5; fill: none; }
+.sky-link {
+  stroke: var(--sky-link); stroke-width: 1.6; stroke-linecap: round; fill: none;
+  stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px var(--sky-link));
+  transition: stroke-dashoffset 700ms var(--ease-soft);
+}
+.sky-link[data-lit] { stroke-dashoffset: 0; }
+.sky-node { opacity: .45; transform: scale(.55); transition: transform 500ms var(--ease-float), opacity 400ms var(--ease-soft); }
+.sky-node[data-lit] { opacity: 1; transform: none; }
+.sky-node-halo { fill: var(--node); opacity: 0; transform-box: fill-box; transform-origin: center; transition: opacity 400ms var(--ease-soft); }
+.sky-node[data-lit] .sky-node-halo { opacity: .2; }
+.sky-node-core { fill: var(--sky-star); transition: fill 400ms var(--ease-soft); }
+.sky-node[data-lit] .sky-node-core { fill: var(--node); filter: drop-shadow(0 0 6px var(--node)); }
+.sky-stumble { animation: sky-stumble 520ms var(--ease-soft); }
+.sky-comet {
+  fill: none; stroke: var(--sky-link); stroke-width: 3; stroke-linecap: round;
+  stroke-dasharray: .14 2; stroke-dashoffset: .14; filter: drop-shadow(0 0 6px var(--sky-link));
+  animation: sky-comet 460ms ease-in forwards;
+}
+.living-sky[data-celebrate] .sky-node-end .sky-node-halo { animation: sky-flare 700ms var(--ease-soft) 280ms both; }
+@media (prefers-reduced-motion: no-preference) {
+  .sky-sun { animation: sun-rise 2.6s var(--ease-soft) both; }
+  .sky-aurora { animation: aurora-drift 24s ease-in-out infinite alternate; }
+}
+@keyframes sky-stumble { 0%, 100% { opacity: 1; } 20% { opacity: .3; } 40% { opacity: .9; } 60% { opacity: .45; } }
+@keyframes sky-comet { to { stroke-dashoffset: -1; } }
+@keyframes sky-flare { 0%, 100% { opacity: .2; transform: none; } 50% { opacity: .55; transform: scale(1.8); } }
+@keyframes sun-rise { from { transform: translateY(30%); } to { transform: none; } }
+@keyframes aurora-drift {
+  from { transform: translate3d(-5%, 0, 0) skewX(-8deg); }
+  to { transform: translate3d(5%, -4%, 0) skewX(8deg) scaleY(1.12); }
+}
+
+/* Theme toggle (ThemeToggle.tsx): a sun whose rays fold away as a bite slides in, leaving a crescent moon. */
+.theme-toggle-body, .theme-toggle-bite, .theme-toggle-rays {
+  transform-box: fill-box; transform-origin: center;
+  transition: transform 520ms var(--ease-float), opacity 320ms var(--ease-soft);
+}
+.theme-toggle-body { transform: scale(.56); }
+.theme-toggle-bite { transform: translate(9px, -9px); }
+.theme-toggle[data-night] .theme-toggle-body,
+.theme-toggle[data-night] .theme-toggle-bite { transform: none; }
+.theme-toggle[data-night] .theme-toggle-rays { opacity: 0; transform: rotate(-60deg) scale(.5); }
+
+/* Theme switch from the toggle (switchTheme): the new theme grows out in a circle instead of cross-fading. */
+.theme-sweep::view-transition-old(root),
+.theme-sweep::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
 @keyframes step-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 @keyframes step-in-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
 
@@ -251,3 +320,13 @@ body[data-focus="true"] [data-mobile-chrome] { display: none; }
 
 .chip-dragging { opacity: .6; translate: 0 -2px; box-shadow: var(--glow); }
 .drop-glow { box-shadow: inset 0 0 0 2px var(--primary-soft); background-color: color-mix(in oklab, var(--primary) 6%, transparent); }
+
+/* Shooting-star overlay (ShootingStarOverlay.tsx): a star crosses the screen while the message card fades in and out. */
+.star-flight { animation: star-flight 2.5s var(--ease-soft) both; }
+.star-card { animation: star-card 2.5s var(--ease-soft) both; }
+@keyframes star-flight {
+  from { transform: translate3d(-60vw, 12vh, 0) rotate(-8deg); opacity: 0; }
+  15% { opacity: 1; }
+  to { transform: translate3d(130vw, -8vh, 0) rotate(-8deg); opacity: 0; }
+}
+@keyframes star-card { 0% { opacity: 0; transform: translateY(8px); } 20%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }

@@ -26,6 +26,20 @@
   --chart-1: #5443C9;
   --chart-2: #008A73;
   --glow: 0 1px 0 0 rgb(27 33 80 / 0.04), 0 10px 30px -18px rgb(27 33 80 / 0.35);
+  /* Auth sky (LivingSky): a dawn horizon. Hills stay pale so ink-muted text over them keeps 4.5:1. */
+  --sky-top: #E8E2FA;
+  --sky-horizon: #FFE7D6;
+  --hill-far: #EBE3F8;
+  --hill-near: #DDD1F2;
+  --sky-link: #6A4BD6;
+  --sky-twinkle: #A99CFF;
+  --sun-core: #FFF4D6;
+  --sun-glow: rgb(255 184 112 / 0.55);
+  --aurora-1: rgb(95 224 200 / 0.5);
+  --aurora-2: rgb(169 156 255 / 0.5);
+  --sun-opacity: 1;
+  --aurora-opacity: 0;
+  --sky-dust-opacity: 0.45;
   --ease-soft: cubic-bezier(.2, .8, .2, 1);
   --ease-float: cubic-bezier(.34, 1.25, .64, 1);
   --dur-press: 120ms;
@@ -62,6 +76,15 @@
   --chart-1: #8C7DFF;
   --chart-2: #1FA48B;
   --glow: 0 0 0 1px rgb(232 236 255 / 0.06), 0 12px 40px -16px rgb(169 156 255 / 0.30);
+  --sky-top: #060A1E;
+  --sky-horizon: #1B2257;
+  --hill-far: #131A45;
+  --hill-near: #0A0F2C;
+  --sky-link: #F5C76B;
+  --sky-twinkle: #FFFFFF;
+  --sun-opacity: 0;
+  --aurora-opacity: 0.75;
+  --sky-dust-opacity: 1;
   color-scheme: dark;
 }
 

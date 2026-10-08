@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Field';
 import { Tabs } from '@/components/ui/Tabs';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ProgressRing } from '@/components/ui/Progress';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { subjectById, useSubjects } from '@/features/subjects/api';
@@ -103,7 +104,7 @@ export default function DecksPage() {
           {tags.map((t) => <button key={t} className={chip(tag === t)} onClick={() => setTag(tag === t ? null : t)}>#{t}</button>)}
         </div>
       )}
-      {decks.isPending ? (
+      {decks.isError ? <QueryError error={decks.error} onRetry={decks.refetch} retrying={decks.isFetching} /> : decks.isPending ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-60" />)}</div>
       ) : list.length === 0 ? (
         scope === 'shared'

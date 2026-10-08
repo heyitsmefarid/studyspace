@@ -8,7 +8,7 @@ const start = Date.parse('2026-10-06T10:00:00Z');
 const active: ActiveStudy = {
   sessionId: '22222222-2222-4222-8222-222222222222',
   timer: timerReducer(createTimer(config, start), { type: 'pause', now: start + 60_000 }),
-  subjectId: null, taskId: 't1', taskDate: '2026-10-06', content: { type: 'deck', id: 'd1' },
+  subjectId: null, taskId: 't1', taskDate: '2026-10-06', roomId: null, orbitId: null, content: { type: 'deck', id: 'd1' },
   counters: { cards: 3, questions: 0, correct: 2 }, startedAtIso: new Date(start).toISOString(), endedAtIso: null,
 };
 
@@ -23,6 +23,15 @@ describe('parseStoredStudy', () => {
     expect(parseStoredStudy(JSON.stringify({ ...active, counters: { cards: 'x' } }), start)).toBeNull();
     expect(parseStoredStudy(JSON.stringify({ ...active, content: { type: 'video', id: 'x' } }), start)).toBeNull();
     expect(parseStoredStudy(JSON.stringify({ ...active, sessionId: undefined }), start)).toBeNull();
+  });
+  it('restores sessions saved before shared orbits existed as solo sessions', () => {
+    const { roomId: _r, orbitId: _o, ...old } = active;
+    expect(parseStoredStudy(JSON.stringify(old), start + HOUR)).toEqual(active);
+  });
+  it('keeps a shared-orbit session and drops a malformed orbit id', () => {
+    const shared = { ...active, roomId: 'room-1', orbitId: 'orbit-1' };
+    expect(parseStoredStudy(JSON.stringify(shared), start + HOUR)).toEqual(shared);
+    expect(parseStoredStudy(JSON.stringify({ ...active, orbitId: 42 }), start)).toBeNull();
   });
   it('drops sessions older than a day', () => {
     expect(parseStoredStudy(JSON.stringify(active), start + 25 * HOUR)).toBeNull();

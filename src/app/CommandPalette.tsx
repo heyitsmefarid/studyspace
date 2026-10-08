@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Command } from 'cmdk';
 import { BookOpenText, CalendarPlus, Layers, ListChecks, MoonStar, Sparkles, Timer } from 'lucide-react';
-import { applyTheme, readThemePref, type ThemePref } from '@/lib/theme';
+import { readThemePref, type ThemePref } from '@/lib/theme';
+import { useChooseTheme } from '@/features/auth/useChooseTheme';
 import { NAV } from './nav';
 import { PALETTE_SOURCES, type PaletteSource } from './paletteSources';
 
@@ -27,6 +28,7 @@ function SourceGroup({ source, query, go }: { source: PaletteSource; query: stri
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const chooseTheme = useChooseTheme();
   const go = (to: string) => { onOpenChange(false); setQuery(''); navigate(to); };
 
   const actions = [
@@ -62,7 +64,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           ))}
           <Command.Item
             value="Toggle theme"
-            onSelect={() => { applyTheme(NEXT_THEME[readThemePref()]); onOpenChange(false); }}
+            onSelect={() => { chooseTheme(NEXT_THEME[readThemePref()]); onOpenChange(false); }}
             className={itemClass}
           >
             <MoonStar className="size-4 text-primary" aria-hidden />Toggle theme

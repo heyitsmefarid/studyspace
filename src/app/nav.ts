@@ -1,6 +1,6 @@
-import { BarChart3, BookOpenText, CalendarDays, Heart, Home, Layers, ListChecks, MessagesSquare, Settings, Sparkles, Store, Timer, type LucideIcon } from 'lucide-react';
+import { BarChart3, BookOpenText, CalendarDays, Heart, Home, Layers, ListChecks, MessagesSquare, Settings, Sparkles, Timer, type LucideIcon } from 'lucide-react';
 
-export interface NavItem { to: string; label: string; icon: LucideIcon; phase?: 2 }
+export interface NavItem { to: string; label: string; icon: LucideIcon }
 
 export const NAV: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
@@ -11,9 +11,8 @@ export const NAV: NavItem[] = [
   { to: '/planner', label: 'Planner', icon: CalendarDays },
   { to: '/study', label: 'Study', icon: Timer },
   { to: '/stats', label: 'Stats', icon: BarChart3 },
-  { to: '/space', label: 'Our Space', icon: Heart, phase: 2 },
-  { to: '/chat', label: 'Chat', icon: MessagesSquare, phase: 2 },
-  { to: '/market', label: 'Market', icon: Store, phase: 2 },
+  { to: '/space', label: 'Our Space', icon: Heart },
+  { to: '/chat', label: 'Chat', icon: MessagesSquare },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 

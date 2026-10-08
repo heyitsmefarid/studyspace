@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Field';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { Sheet } from '@/components/ui/Sheet';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -77,6 +78,7 @@ export default function NotesPage() {
 
   const list = searching ? search.data : notes.data;
   const pending = searching ? search.isPending : notes.isPending;
+  const activeQuery = searching ? search : notes;
   const total = all.data?.length ?? 0;
 
   return (
@@ -113,7 +115,7 @@ export default function NotesPage() {
         <NotesSidebar view={view} onChange={setView} counts={counts} />
         <section className="min-w-0 flex-1">
           {searching && <h2 className="mb-3 text-sm text-ink-muted">Results for “{debounced.trim()}”</h2>}
-          {pending ? (
+          {activeQuery.isError ? <QueryError error={activeQuery.error} onRetry={activeQuery.refetch} retrying={activeQuery.isFetching} /> : pending ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-36" />)}</div>
           ) : (list?.length ?? 0) === 0 ? (
             searching ? <EmptyState title="No notes match" body="Try fewer or different words." />

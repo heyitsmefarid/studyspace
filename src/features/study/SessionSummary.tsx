@@ -15,6 +15,7 @@ import { useXpSince } from '@/features/gamification/api';
 import { effectiveStreak, todayInZone, DEFAULT_TZ } from '@/features/gamification/streak';
 import { subjectById, useSubjects } from '@/features/subjects/api';
 import { completeTaskOccurrence, taskKeys } from '@/features/planner/api';
+import { useTableChange } from '@/features/realtime/useRealtime';
 import { saveStudySession } from './api';
 import type { FinishedStudy } from './finish';
 
@@ -40,23 +41,30 @@ export function SessionSummary({ data, onSaved, onAgain, onDiscard }: {
   const subjects = useSubjects();
   const [status, setStatus] = useState<'saving' | 'saved' | 'error'>('saving');
   const [error, setError] = useState('');
+  const [together, setTogether] = useState(false);
   const started = useRef(false);
+  // The first member to save is marked `together` by the server only when the partner's session lands.
+  useTableChange('study_sessions', (c) => {
+    if (c.eventType === 'UPDATE' && c.new.id === data.sessionId && c.new.together === true) setTogether(true);
+  });
   const xp = useXpSince(status === 'saved' ? data.startedAtIso : null);
   const shownXp = useCountUp(xp);
 
   async function save() {
     try {
-      await saveStudySession({
+      const row = await saveStudySession({
         id: data.sessionId, subjectId: data.subjectId, taskId: data.taskId, mode: data.timer.config.mode, startedAt: data.startedAtIso, endedAt: data.endedAtIso,
         focusSeconds: data.focusSeconds, cardsStudied: data.counters.cards, questionsAnswered: data.counters.questions, correctAnswers: data.counters.correct,
+        roomId: data.roomId,
       });
+      setTogether(row.together);
       if (data.taskId && data.taskDate) {
         // The session is already saved, so a failed tick only needs a nudge — never a re-save.
         try { await completeTaskOccurrence(data.taskId, user!.id, data.taskDate); }
         catch (e) { toast.error(`Session saved, but the planner task wasn't ticked off — mark it done in the planner. (${friendlyMessage(e)})`); }
       }
       await refreshProfile();
-      for (const key of [['sessions'], ['xp-since'], ['focus-total'], taskKeys.all]) void qc.invalidateQueries({ queryKey: key });
+      for (const key of [['sessions'], ['space'], ['xp-since'], ['focus-total'], taskKeys.all]) void qc.invalidateQueries({ queryKey: key });
       setStatus('saved');
       onSaved(data);
     } catch (e) {
@@ -103,6 +111,7 @@ export function SessionSummary({ data, onSaved, onAgain, onDiscard }: {
       <NewStar />
       <div>
         <h1 className="font-display text-3xl">A new star joins your sky</h1>
+        {together && <p className="mt-2 inline-flex animate-pop-in items-center gap-1 rounded-full bg-gold-soft px-3 py-1 text-sm font-semibold text-gold">Studied together ✦</p>}
         <p className="mt-1 text-ink-muted">{subjectById(subjects.data, data.subjectId)?.name ?? 'Study session'} · {formatDuration(data.focusSeconds)} of focus</p>
         {data.capped && <p className="mt-1 text-xs text-ink-faint">Sessions are capped at 16 hours, so only the last 16 were counted.</p>}
       </div>

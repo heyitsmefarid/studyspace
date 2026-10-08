@@ -43,6 +43,7 @@ Only the two `VITE_` values go in `.env.local`. They are public by design and ar
 |---|---|---|
 | `GEMINI_API_KEY` | from Google AI Studio | primary provider |
 | `GEMINI_MODEL` | `gemini-3.8-flash` | any current Flash-class model |
+| `GEMINI_FALLBACK_MODEL` | `gemini-3.5-flash-lite` | optional; attachment scans use this model when the primary fails; defaults to this value |
 | `GROQ_API_KEY` | from console.groq.com | fallback provider |
 | `GROQ_MODEL` | `openai/gpt-oss-120b` | `llama-3.3-70b-versatile` also works |
 | `ALLOWED_ORIGINS` | `https://your-app.vercel.app` | CORS allow-list (localhost is always allowed) |

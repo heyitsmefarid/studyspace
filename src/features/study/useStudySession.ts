@@ -9,6 +9,8 @@ export interface ActiveStudy {
   taskId: string | null;
   /** The planner occurrence this session completes (the task's own date, or today for repeating tasks). */
   taskDate: string | null;
+  roomId: string | null;
+  orbitId: string | null;
   content: { type: 'deck' | 'quiz' | 'note'; id: string } | null;
   counters: { cards: number; questions: number; correct: number };
   startedAtIso: string;
@@ -44,11 +46,15 @@ export function parseStoredStudy(raw: string | null, nowMs: number): ActiveStudy
   const counters = a.counters as Record<string, unknown> | undefined;
   const content = a.content as Record<string, unknown> | null | undefined;
   const started = typeof a.startedAtIso === 'string' ? Date.parse(a.startedAtIso) : NaN;
+  // sessions saved before shared orbits existed have no room/orbit ids: they restore as solo sessions
+  const roomId = a.roomId ?? null;
+  const orbitId = a.orbitId ?? null;
   const ok = isTimer(a.timer) && typeof a.sessionId === 'string' && strOrNull(a.subjectId) && strOrNull(a.taskId) && strOrNull(a.taskDate) && strOrNull(a.endedAtIso)
+    && strOrNull(roomId) && strOrNull(orbitId)
     && Boolean(counters) && ['cards', 'questions', 'correct'].every((k) => num(counters![k]))
     && (content === null || (Boolean(content) && CONTENT.has(content!.type as string) && typeof content!.id === 'string'))
     && Number.isFinite(started) && nowMs - started <= DAY;
-  return ok ? (a as unknown as ActiveStudy) : null;
+  return ok ? ({ ...a, roomId, orbitId } as unknown as ActiveStudy) : null;
 }
 
 // ───────────── module store shared by the setup, runner and summary

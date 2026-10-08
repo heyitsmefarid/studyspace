@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
 
   const providers = {
     gemini: createGeminiProvider({ apiKey: env('GEMINI_API_KEY'), model: env('GEMINI_MODEL') }),
+    // Attachments require a multimodal fallback; Groq's text model cannot read the file.
+    geminiFallback: createGeminiProvider({ apiKey: env('GEMINI_API_KEY'), model: env('GEMINI_FALLBACK_MODEL') ?? 'gemini-3.5-flash-lite' }),
     groq: createGroqProvider({ apiKey: env('GROQ_API_KEY'), model: env('GROQ_MODEL') }),
   };
   // Bad input or missing AI keys are answered before reserving, so they never use a daily request slot.

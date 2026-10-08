@@ -1,4 +1,4 @@
-export const AI_TASKS = ['tutor', 'summarize', 'explain', 'simplify', 'study_guide', 'flashcards', 'quiz', 'practice', 'study_plan', 'quiz_analysis', 'recommendations'] as const;
+export const AI_TASKS = ['tutor', 'summarize', 'explain', 'simplify', 'study_guide', 'scan_attachment', 'flashcards', 'quiz', 'practice', 'study_plan', 'quiz_analysis', 'recommendations'] as const;
 export type AiTask = (typeof AI_TASKS)[number];
 export type ProviderName = 'gemini' | 'groq';
 
@@ -33,6 +33,7 @@ export interface ProviderRequest {
   temperature: number;
   maxOutputTokens: number;
   signal?: AbortSignal;
+  media?: { mimeType: string; data: string };
 }
 
 export interface AIProvider {

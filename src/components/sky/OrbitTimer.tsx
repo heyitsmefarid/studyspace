@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
 import { formatClock } from '@/lib/dates';
 import type { Phase } from '@/features/study/timer';
 
 const LABEL: Record<Phase, string> = { focus: 'Focus', short_break: 'Short break', long_break: 'Long break' };
 
-export function OrbitTimer({ progress, phase, remaining, elapsed, completed, size = 300 }: {
-  progress: number; phase: Phase; remaining: number | null; elapsed: number; completed: number; size?: number;
+export function OrbitTimer({ progress, phase, remaining, elapsed, completed, size = 300, companion }: {
+  progress: number; phase: Phase; remaining: number | null; elapsed: number; completed: number; size?: number; companion?: ReactNode;
 }) {
   const r = 120, c = 2 * Math.PI * r;
   const angle = progress * 360 - 90;
@@ -35,6 +36,11 @@ export function OrbitTimer({ progress, phase, remaining, elapsed, completed, siz
         <div className="tabular font-display text-6xl">{formatClock(remaining ?? elapsed)}</div>
         <div className="text-xs text-ink-faint">{completed} {completed === 1 ? 'moon' : 'moons'}</div>
       </div>
+      {companion && (
+        <div aria-hidden className="absolute inset-0 transition-transform duration-1000 ease-linear" style={{ transform: `rotate(${progress * 360 + 180}deg)` }}>
+          <div className="absolute left-1/2 top-[10%] -translate-x-1/2 -translate-y-1/2" style={{ transform: `rotate(${-(progress * 360 + 180)}deg)` }}>{companion}</div>
+        </div>
+      )}
     </div>
   );
 }

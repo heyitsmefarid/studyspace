@@ -11,4 +11,8 @@ describe('nav', () => {
     expect(NAV.map((n) => n.label)).toEqual(expect.arrayContaining(['Notes', 'Flashcards', 'Quizzes', 'Planner', 'Study', 'Nova', 'Stats', 'Settings']));
     expect(MORE_ITEMS.length + MOBILE_TABS.length).toBe(NAV.length);
   });
+  it('has no Market and no "soon" items', () => {
+    expect(NAV.map((n) => n.to)).not.toContain('/market');
+    expect(NAV.some((n) => 'phase' in n)).toBe(false);
+  });
 });

@@ -74,6 +74,10 @@ Turn the notes into a study guide in Markdown with exactly these sections:
 ## Common mistakes — 3 bullets.
 ## Self-check — 5 numbered questions, then "### Answers" with numbered answers.`;
 
+export const SCAN_ATTACHMENT_SYSTEM_PROMPT = `${PREAMBLE}
+
+Scan the uploaded study attachment and return a concise Markdown study summary with these sections: ## What this contains, ## Key points, ## Key terms, ## Remember. Only describe information present in the attachment. If it is unreadable, say so plainly.`;
+
 export const FLASHCARD_SYSTEM_PROMPT = `${PREAMBLE}
 
 Create study flashcards from the material.

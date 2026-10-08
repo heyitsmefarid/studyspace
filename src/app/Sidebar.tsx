@@ -3,9 +3,14 @@ import { Link, NavLink } from 'react-router';
 import { ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Logo, LogoMark } from '@/components/sky/Logo';
+import { ThemeToggle } from '@/components/sky/ThemeToggle';
 import { Badge } from '@/components/ui/Badge';
 import { NAV } from './nav';
 import { ProfileChip } from './ProfileChip';
+import { useAuth } from '@/features/auth/AuthProvider';
+import { PartnerAvatar } from '@/features/realtime/PartnerAvatar';
+import { Bell } from '@/features/notifications/Bell';
+import { useUnread } from '@/features/notifications/api';
 
 const KEY = 'ss.sidebar';
 
@@ -14,6 +19,8 @@ function readCollapsed(): boolean {
 }
 
 export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
+  const { partner } = useAuth();
+  const { messages: unreadMessages } = useUnread();
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const toggle = () => {
     setCollapsed((c) => {
@@ -32,9 +39,13 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       <div className="mb-4 flex items-center justify-between px-2 pt-2">
         <Link to="/" aria-label="StudySpace home">{collapsed ? <LogoMark /> : <Logo />}</Link>
         {!collapsed && (
-          <button onClick={toggle} className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Collapse sidebar">
-            <ChevronsLeft className="size-4" />
-          </button>
+          <span className="flex items-center gap-0.5">
+            <Bell className="size-8" />
+            <ThemeToggle className="size-8" />
+            <button onClick={toggle} className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Collapse sidebar">
+              <ChevronsLeft className="size-4" />
+            </button>
+          </span>
         )}
       </div>
 
@@ -51,7 +62,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
       </button>
 
       <nav aria-label="Main" className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        {NAV.map(({ to, label, icon: Icon, phase }) => (
+        {NAV.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -66,7 +77,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
             {({ isActive }) => (<>
               <Icon className="size-5 shrink-0" aria-hidden />
               {!collapsed && <span className="flex-1">{label}</span>}
-              {!collapsed && phase === 2 && <Badge>soon</Badge>}
+              {!collapsed && to === '/chat' && unreadMessages > 0 && <Badge tone="coral">{unreadMessages > 9 ? '9+' : unreadMessages}</Badge>}
               {!collapsed && isActive && <span aria-hidden className="size-1.5 animate-pop-in rounded-full bg-gold shadow-[0_0_8px_var(--gold)]" />}
             </>)}
           </NavLink>
@@ -75,11 +86,23 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
 
       <div className="mt-3 border-t border-line pt-3">
         {collapsed ? (
-          <button onClick={toggle} className="mx-auto flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
-            <ChevronsRight className="size-4" />
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            {partner && <Link to="/space" className="rounded-full p-1 hover:bg-surface-2" aria-label="Our Space"><PartnerAvatar size={28} /></Link>}
+            <Bell />
+            <ThemeToggle />
+            <button onClick={toggle} className="flex rounded-lg p-2 text-ink-faint hover:bg-surface-2 hover:text-ink" aria-label="Expand sidebar">
+              <ChevronsRight className="size-4" />
+            </button>
+          </div>
         ) : (
-          <ProfileChip />
+          <div className="flex items-center gap-1">
+            <div className="min-w-0 flex-1"><ProfileChip /></div>
+            {partner && (
+              <Link to="/space" className="rounded-full p-1 hover:bg-surface-2" aria-label="Our Space">
+                <PartnerAvatar size={32} />
+              </Link>
+            )}
+          </div>
         )}
       </div>
     </aside>

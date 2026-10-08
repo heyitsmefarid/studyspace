@@ -8,6 +8,7 @@ import { TodayCard } from './widgets/TodayCard';
 import { UpcomingCard } from './widgets/UpcomingCard';
 import { QuickNova } from './widgets/QuickNova';
 import { SubjectProgress } from './widgets/SubjectProgress';
+import { CurrentGoals } from './widgets/CurrentGoals';
 import { RecentDecks } from './widgets/RecentDecks';
 import { RecentNotes } from './widgets/RecentNotes';
 import { RecentQuizzes } from './widgets/RecentQuizzes';
@@ -25,7 +26,8 @@ export default function DashboardPage() {
       <Slot span="lg:col-span-5"><UpcomingCard /></Slot>
       <Slot span="lg:col-span-7"><NovaRecommendations /></Slot>
       <Slot span="lg:col-span-5"><QuickNova /></Slot>
-      <Slot span="lg:col-span-12"><SubjectProgress /></Slot>
+      <Slot span="lg:col-span-7"><SubjectProgress /></Slot>
+      <Slot span="lg:col-span-5"><CurrentGoals /></Slot>
       <Slot span="lg:col-span-4"><RecentDecks /></Slot>
       <Slot span="lg:col-span-4"><RecentNotes /></Slot>
       <Slot span="lg:col-span-4"><RecentQuizzes /></Slot>

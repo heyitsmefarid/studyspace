@@ -7,13 +7,18 @@ do $$
 declare
   a uuid; b uuid;
   n_private uuid; n_shared uuid; d_private uuid; d_shared uuid; c uuid; c_priv uuid; s_a uuid; n_b uuid;
-  qz uuid; q1 uuid; q2 uuid; att uuid; sess uuid; t_end timestamptz;
+  qz uuid; q1 uuid; q2 uuid; att uuid; sess uuid; t_end timestamptz; s1 uuid; s2 uuid; s3 uuid; s4 uuid;
   cnt int;
+  rm uuid; m1 uuid; m2 uuid; st uuid; tk uuid; k text;
 begin
   select id into a from public.profiles order by created_at limit 1;
   select id into b from public.profiles where id <> a order by created_at limit 1;
   assert a is not null and b is not null, 'run this after both members have signed up';
   assert (select count(*) from public.profiles) = 2, 'StudySpace should have exactly two members';
+
+  -- notification switches start from their defaults (all on) for these checks (0013)
+  update public.profiles set preferences = preferences #- '{notifications,kinds}' where id in (a, b);
+  select id into rm from public.study_rooms order by created_at limit 1;
 
   -- ── storage: no HTML/SVG/script uploads (0010)
   assert not exists (
@@ -115,7 +120,7 @@ begin
 
   -- study sessions: plausible, within a day, non-overlapping; xp_earned is set by the server (0006–0008)
   t_end := now() - interval '1 minute';
-  while exists (select 1 from public.study_sessions where user_id = a
+  while exists (select 1 from public.study_sessions where user_id in (a, b)
                 and tstzrange(started_at, ended_at, '[)') && tstzrange(t_end - interval '26 minutes', t_end, '[)')) loop
     t_end := t_end - interval '30 minutes';
   end loop;
@@ -202,6 +207,124 @@ begin
   end;
   execute 'reset role';
 
+  -- ── Phase 2: chat + notifications (0013)
+  assert exists (select 1 from public.notifications where user_id = b and dedupe_key like 'shared_note:' || n_shared || ':%'),
+    'sharing a note did not notify the partner';
+  assert (select count(*) from pg_policies where schemaname = 'realtime' and tablename = 'messages' and policyname like 'ss room members%') = 2,
+    'room channel policies are missing';
+  update public.profiles set preferences = jsonb_set(preferences, '{notifications}', '{"kinds": {"message": true}}') where id = b;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert private.is_room_topic('room:' || rm), 'Our Room topic not recognised';
+  assert not private.is_room_topic('room:' || gen_random_uuid()), 'an unknown room topic was accepted';
+  foreach k in array array['system', 'listing'] loop
+    begin
+      insert into public.messages (room_id, sender_id, kind, body) values (rm, a, k, 'forged');
+      assert false, format('a %s message was accepted', k);
+    exception when check_violation then null;
+    end;
+  end loop;
+  begin
+    insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', repeat('x', 141));
+    assert false, 'a 141-character shooting star was accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'text', '   ');
+    assert false, 'an empty message was accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.messages (room_id, sender_id, kind, attachment_path, attachment_name, attachment_mime)
+    values (rm, a, 'file', b::text || '/x.pdf', 'x.pdf', 'application/pdf');
+    assert false, 'a file from the partner folder was attached';
+  exception when check_violation then null;
+  end;
+  insert into public.messages (room_id, sender_id, kind, body, created_at) values (rm, a, 'text', '  hello  ', now() - interval '3 days')
+  returning id into m1;
+  assert (select body = 'hello' and created_at = now() from public.messages where id = m1), 'body/created_at were not set by the server';
+  begin
+    update public.messages set body = 'edited' where id = m1;
+    assert false, 'a message body was edited';
+  exception when insufficient_privilege then null;
+  end;
+  update public.messages set deleted_at = now() where id = m1;
+  assert (select body = '' and deleted_at is not null from public.messages where id = m1), 'deleting did not blank the message';
+  begin
+    update public.messages set deleted_at = null where id = m1;
+    assert false, 'a deleted message was restored';
+  exception when check_violation then null;
+  end;
+  begin
+    insert into public.message_reactions (message_id, user_id, emoji) values (m1, a, '🔥');
+    assert false, 'reacted to a deleted message';
+  exception when others then if sqlerrm like '%row-level security%' then null; else raise; end if;
+  end;
+  insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', 'You got this') returning id into st;
+  execute 'reset role';
+  assert exists (select 1 from public.notifications where user_id = b and dedupe_key = 'star:' || st and link = '/chat'),
+    'a shooting star did not notify the partner';
+  update public.profiles set preferences = jsonb_set(preferences, '{notifications}', '{"kinds": {"message": false}}') where id = b;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.messages (room_id, sender_id, kind, body) values (rm, a, 'star', 'Water break?') returning id into m2;
+  insert into public.tasks (owner_id, title, kind, due_at) values (a, 'RLS due soon', 'deadline', now() + interval '2 hours') returning id into tk;
+  perform public.refresh_reminders();
+  perform public.refresh_reminders();
+  execute 'reset role';
+  assert not exists (select 1 from public.notifications where user_id = b and dedupe_key = 'star:' || m2),
+    'a switched-off notification kind was delivered';
+  assert (select count(*) from public.notifications where user_id = a and dedupe_key = 'due:' || tk) = 1,
+    'refresh_reminders did not remind exactly once';
+
+  -- ── Phase 2: studying together, Our Space data (0014)
+  t_end := now() - interval '2 minutes';
+  while exists (select 1 from public.study_sessions where user_id in (a, b)
+                and tstzrange(started_at, ended_at, '[)') && tstzrange(t_end - interval '50 minutes', t_end, '[)')) loop
+    t_end := t_end - interval '55 minutes';
+  end loop;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, room_id)
+  values (a, 'custom', t_end - interval '50 minutes', t_end - interval '25 minutes', 1500, gen_random_uuid()) returning id into s1;
+  execute 'reset role';
+  assert (select room_id is null from public.study_sessions where id = s1), 'an unknown room_id was kept';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds, room_id)
+  values (b, 'custom', t_end - interval '40 minutes', t_end - interval '20 minutes', 1200, rm) returning id into s2;
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
+  values (b, 'custom', t_end - interval '19 minutes', t_end - interval '1 minute', 1080) returning id into s3;
+  execute 'reset role';
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  insert into public.study_sessions (user_id, mode, started_at, ended_at, focus_seconds)
+  values (a, 'custom', t_end - interval '24 minutes', t_end - interval '15 minutes', 540) returning id into s4;
+  execute 'reset role';
+  assert (select together from public.study_sessions where id = s2), 'a 15-minute overlap did not mark the new session together';
+  assert (select together from public.study_sessions where id = s1), 'the partner''s overlapping session was not marked together';
+  assert not (select together from public.study_sessions where id = s3), 'a non-overlapping session was marked together';
+  assert not (select together from public.study_sessions where id = s4), 'a 4-minute overlap was marked together';
+  assert exists (select 1 from public.user_achievements where user_id = a and achievement_code = 'binary_star'),
+    'Binary Star was not unlocked for the partner';
+
+  update public.profiles set preferences = jsonb_set(preferences, '{privacy}', '{"shareActivity": false}') where id = a;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert (select count(*) from public.get_space_stats(now() - interval '7 days')) = 2, 'space stats should have one row per member';
+  assert not exists (select 1 from public.space_feed(100) where user_id = a), 'A hid their activity but B still sees it';
+  assert exists (select 1 from public.space_feed(100) where user_id = b), 'B does not see their own activity';
+  execute 'reset role';
+  update public.profiles set preferences = preferences #- '{privacy,shareActivity}' where id = a;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
+  assert not exists (select 1 from public.space_feed(100) where title in ('RLS A private', 'RLS quiz', 'RLS A deck private')),
+    'space_feed leaked a private title';
+  assert exists (select 1 from public.space_feed(100) where kind = 'shared_note' and ref_id = n_shared), 'shared note missing from the feed';
+  execute 'reset role';
+
   -- ── a signed-in account that is not a member cannot invite
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
@@ -210,6 +333,8 @@ begin
     assert false, 'a non-member could invite';
   exception when insufficient_privilege then null;
   end;
+  assert (select count(*) from public.get_space_stats(now())) = 0, 'a non-member read space stats';
+  assert (select count(*) from public.space_feed(30)) = 0, 'a non-member read the space feed';
   execute 'reset role';
 
   raise exception 'RLS CHECKS PASSED';

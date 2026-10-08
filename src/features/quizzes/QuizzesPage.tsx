@@ -10,6 +10,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Menu } from '@/components/ui/Menu';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ProgressRing } from '@/components/ui/Progress';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -98,7 +99,7 @@ export default function QuizzesPage() {
         </section>
       )}
       <Tabs label="Whose quizzes" value={scope} onValueChange={setScope} items={[{ value: 'mine', label: 'Mine' }, { value: 'shared', label: 'Shared with me' }]} className="mb-4" />
-      {quizzes.isPending ? (
+      {quizzes.isError ? <QueryError error={quizzes.error} onRetry={quizzes.refetch} retrying={quizzes.isFetching} /> : quizzes.isPending ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-44" />)}</div>
       ) : (quizzes.data?.length ?? 0) === 0 ? (
         <EmptyState title={scope === 'mine' ? 'No quizzes yet' : 'Nothing shared yet'}

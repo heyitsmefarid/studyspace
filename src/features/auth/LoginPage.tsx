@@ -9,9 +9,11 @@ import { Field, Input } from '@/components/ui/Field';
 import { useAuth } from './AuthProvider';
 import { AuthLayout, StarBurst } from './AuthLayout';
 import { PasswordInput } from './PasswordInput';
+import { loginProgress } from './skyProgress';
+import { AuthRecovery } from './AuthRecovery';
 
 export default function LoginPage() {
-  const { session, profile, loading, signIn } = useAuth();
+  const { session, profile, loading, error: authError, signIn } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [email, setEmail] = useState('');
@@ -22,6 +24,7 @@ export default function LoginPage() {
   const [resetMsg, setResetMsg] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [burst, setBurst] = useState(false);
+  const [stumble, setStumble] = useState(0);
 
   if (!loading && session && profile && !burst) return <Navigate to={params.get('next') ?? '/'} replace />;
 
@@ -35,6 +38,7 @@ export default function LoginPage() {
       navigate(params.get('next') ?? '/', { replace: true });
     } catch (err) {
       setError(friendlyMessage(err));
+      setStumble((n) => n + 1);
       replayAnimation(formRef.current, 'animate-shake');
     } finally {
       setBusy(false);
@@ -44,17 +48,20 @@ export default function LoginPage() {
   async function onReset(e: FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: `${location.origin}/set-password` });
-    setBusy(false);
-    if (err) setError(friendlyMessage(err));
-    else setResetMsg('If email delivery is set up for StudySpace, a reset link is on its way. If not, a password can be reset from the Supabase dashboard.');
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: `${location.origin}/set-password` });
+      if (err) { setError(friendlyMessage(err)); setStumble((n) => n + 1); }
+      else setResetMsg('If email delivery is set up for StudySpace, a reset link is on its way. If not, a password can be reset from the Supabase dashboard.');
+    } catch (err) { setError(friendlyMessage(err)); setStumble((n) => n + 1); }
+    finally { setBusy(false); }
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout progress={loginProgress(email, resetMode ? '' : password)} celebrate={burst} stumble={stumble}>
       <h1 className="mt-6 font-display text-2xl">{resetMode ? 'Reset your password' : 'Welcome back to your sky'}</h1>
-      {params.get('error') === 'no-profile' && (
-        <p role="alert" className="mt-3 rounded-xl bg-coral-soft px-3 py-2 text-sm text-coral">This account isn't part of StudySpace.</p>
+      {authError && <div className="mt-3"><AuthRecovery message={authError} /></div>}
+      {params.get('error') === 'no-profile' && !loading && session && !profile && !authError && (
+        <div className="mt-3"><AuthRecovery message="This account isn't part of StudySpace." /></div>
       )}
       <form ref={formRef} onSubmit={resetMode ? onReset : onSubmit} className="mt-5 flex flex-col gap-4">
         <Field label="Email">

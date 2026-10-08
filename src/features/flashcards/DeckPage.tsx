@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Field';
 import { Menu } from '@/components/ui/Menu';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { subjectById, useSubjects } from '@/features/subjects/api';
@@ -50,6 +51,7 @@ export default function DeckPage() {
   const mastery = deckMastery(states);
 
   if (q.isPending) return <div className="flex flex-col gap-3"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-56" /><Skeleton className="h-40" /></div>;
+  if (q.isError) return <QueryError error={q.error} onRetry={q.refetch} retrying={q.isFetching} />;
   if (!q.data) return <EmptyState title="This deck drifted away" body="It may have been deleted, or it isn't shared with you." action={<Link to="/decks" className="text-primary underline">Back to decks</Link>} />;
 
   const { deck } = q.data;

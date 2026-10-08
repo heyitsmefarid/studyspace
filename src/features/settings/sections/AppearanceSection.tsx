@@ -1,7 +1,7 @@
 import { cn } from '@/lib/cn';
-import { applyTheme, type ThemePref } from '@/lib/theme';
+import type { ThemePref } from '@/lib/theme';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { useUpdatePreferences } from '@/features/auth/useProfileMutations';
+import { originOf, useChooseTheme } from '@/features/auth/useChooseTheme';
 
 const OPTIONS: { value: ThemePref; label: string; hint: string; preview: [string, string, string] }[] = [
   { value: 'system', label: 'System', hint: 'Follow your device', preview: ['#0B1026', '#F6F3FB', '#A99CFF'] },
@@ -11,7 +11,7 @@ const OPTIONS: { value: ThemePref; label: string; hint: string; preview: [string
 
 export function AppearanceSection() {
   const { preferences } = useAuth();
-  const update = useUpdatePreferences();
+  const choose = useChooseTheme();
   return (
     <div role="radiogroup" aria-label="Theme" className="grid gap-3 sm:grid-cols-3">
       {OPTIONS.map((o) => (
@@ -19,7 +19,7 @@ export function AppearanceSection() {
           key={o.value}
           role="radio"
           aria-checked={preferences.theme === o.value}
-          onClick={() => { applyTheme(o.value); update.mutate({ theme: o.value }); }}
+          onClick={(e) => choose(o.value, originOf(e.currentTarget))}
           className={cn('rounded-2xl border p-3 text-left transition',
             preferences.theme === o.value ? 'border-primary bg-primary-soft' : 'border-line hover:border-line-strong')}
         >

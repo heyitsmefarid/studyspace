@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Logo } from '@/components/sky/Logo';
+import { ThemeToggle } from '@/components/sky/ThemeToggle';
 import { Card } from '@/components/ui/Card';
+import { LivingSky } from './LivingSky';
 
 /** Sparse twinkling backdrop shared by the auth pages and onboarding (moved here from LoginPage.tsx). */
 export function StarBackdrop() {
@@ -41,50 +43,28 @@ export function StarBurst() {
   );
 }
 
-/**
- * Two stars ("you" and "your person"), a constellation line that draws in between them, drifting dust and a rare
- * shooting star. Desktop: the left half; phone: a band above the form.
- */
-function AuthSky({ compact }: { compact?: boolean }) {
+export function AuthLayout({ children, progress = 0, celebrate = false, stumble = 0 }: {
+  children: ReactNode;
+  /** Lit constellation links, 0…SKY_LINKS (skyProgress.ts). */
+  progress?: number;
+  /** Success: a comet runs the constellation before the page moves on. */
+  celebrate?: boolean;
+  /** Failed attempts so far; each one makes the constellation flicker. */
+  stumble?: number;
+}) {
+  const sky = { progress, celebrate, stumble };
   return (
-    <div aria-hidden className="relative h-full w-full overflow-hidden">
-      <div className="study-starfield absolute inset-0" />
-      <svg viewBox="0 0 400 300" preserveAspectRatio={compact ? 'xMidYMid slice' : 'xMidYMid meet'}
-        className={compact ? 'absolute inset-0 size-full' : 'absolute left-1/2 top-[12%] w-[min(85%,520px)] -translate-x-1/2'}>
-        <path d="M120 190 Q 200 120 285 150" fill="none" stroke="var(--line-strong)" strokeWidth="1.2" pathLength={1}
-          strokeDasharray="1" className="animate-draw-line" style={{ animationDelay: '400ms' }} />
-        <g className="animate-pop-in" style={{ animationDelay: '150ms', transformOrigin: '120px 190px' }}>
-          <circle cx="120" cy="190" r="16" fill="var(--star-me)" opacity=".18" />
-          <circle cx="120" cy="190" r="5" fill="var(--star-me)" style={{ filter: 'drop-shadow(0 0 8px var(--star-me))' }} />
-        </g>
-        <g className="animate-pop-in" style={{ animationDelay: '900ms', transformOrigin: '285px 150px' }}>
-          <circle cx="285" cy="150" r="16" fill="var(--star-partner)" opacity=".18" />
-          <circle cx="285" cy="150" r="5" fill="var(--star-partner)" style={{ filter: 'drop-shadow(0 0 8px var(--star-partner))' }} />
-        </g>
-        {!compact && (<>
-          <text x="120" y="222" textAnchor="middle" fontSize="11" fill="var(--ink-muted)">you</text>
-          <text x="285" y="182" textAnchor="middle" fontSize="11" fill="var(--ink-muted)">your person</text>
-        </>)}
-        <line x1="0" y1="0" x2="60" y2="22" stroke="var(--sky-star)" strokeWidth="1.2" strokeLinecap="round" className="shooting-star" />
-      </svg>
-      {!compact && (
-        <div className="absolute inset-x-10 bottom-12">
-          <p className="font-display text-3xl leading-tight">A study sky for two.</p>
-          <p className="mt-2 max-w-sm text-ink-muted">Every session adds a star. Notes, cards, quizzes and Nova, shared with your person.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function AuthLayout({ children }: { children: ReactNode }) {
-  return (
-    <main className="min-h-dvh lg:grid lg:grid-cols-[1.1fr_1fr]">
+    <main className="relative min-h-dvh lg:grid lg:grid-cols-[1.15fr_1fr]">
       <StarBackdrop />
-      <div className="relative hidden border-r border-line bg-surface/40 lg:block"><AuthSky /></div>
-      <div className="relative h-44 lg:hidden"><AuthSky compact /></div>
-      <div className="relative z-10 -mt-10 grid place-items-center px-4 pb-10 lg:mt-0 lg:py-10">
-        <Card className="w-full max-w-sm animate-rise-in">
+      <ThemeToggle className="absolute right-3 top-3 z-20 border border-line bg-surface/70 backdrop-blur lg:right-6 lg:top-6" />
+      <div className="relative hidden p-3 lg:block">
+        <div className="sticky top-3 h-[calc(100dvh-1.5rem)] overflow-hidden rounded-[1.75rem] border border-line shadow-glow">
+          <LivingSky {...sky} />
+        </div>
+      </div>
+      <div className="relative h-56 lg:hidden"><LivingSky {...sky} compact /></div>
+      <div className="relative z-10 -mt-12 grid place-items-center px-4 pb-10 lg:mt-0 lg:py-10">
+        <Card className="w-full max-w-sm animate-rise-in bg-surface/80 backdrop-blur-xl">
           <Logo className="logo-orbit-slow" />
           {children}
         </Card>

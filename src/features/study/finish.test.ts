@@ -7,7 +7,7 @@ const HOUR = 3_600_000;
 const start = Date.parse('2026-10-06T08:00:00Z');
 const config = { mode: 'stopwatch' as const, focusMin: 25, shortMin: 5, longMin: 15, longEvery: 4, customMin: 45 };
 const finished = (endMs: number): ActiveStudy => ({
-  sessionId: 's1', subjectId: null, taskId: null, taskDate: null, content: null, counters: { cards: 0, questions: 0, correct: 0 },
+  sessionId: 's1', subjectId: null, taskId: null, taskDate: null, roomId: null, orbitId: null, content: null, counters: { cards: 0, questions: 0, correct: 0 },
   timer: timerReducer(createTimer(config, start), { type: 'finish', now: endMs }),
   startedAtIso: new Date(start).toISOString(), endedAtIso: new Date(endMs).toISOString(),
 });

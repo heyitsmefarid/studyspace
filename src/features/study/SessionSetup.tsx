@@ -78,7 +78,7 @@ function SetupForm({ task, initial, onStart }: { task: Task | null; initial?: Se
       ? task.recurrence === 'none' && (task.start_at ?? task.due_at) ? format(parseISO((task.start_at ?? task.due_at)!), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
       : null;
     onStart({
-      subjectId: c.subjectId, taskId: task?.id ?? null, taskDate,
+      subjectId: c.subjectId, taskId: task?.id ?? null, taskDate, roomId: null, orbitId: null,
       content: c.kind === 'none' || !contentId ? null : { type: c.kind, id: contentId },
       config: { mode: c.timerMode, focusMin: c.focusMin, shortMin: c.shortMin, longMin: c.longMin, longEvery: c.longEvery, customMin: c.customMin },
     }, c);

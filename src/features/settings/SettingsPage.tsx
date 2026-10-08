@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ChevronLeft, ChevronRight, Heart, KeyRound, LogOut, Palette, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import { friendlyMessage } from '@/lib/errors';
+import { Bell, ChevronLeft, ChevronRight, Heart, KeyRound, LogOut, Palette, Shield, Sparkles, Tags, Timer, UserRound, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
@@ -9,6 +12,8 @@ import { ProfileSection } from './sections/ProfileSection';
 import { SubjectsSection } from './sections/SubjectsSection';
 import { PasswordSection } from './sections/PasswordSection';
 import { AppearanceSection } from './sections/AppearanceSection';
+import { NotificationsSection } from './sections/NotificationsSection';
+import { PrivacySection } from './sections/PrivacySection';
 import { StudySection } from './sections/StudySection';
 import { AiSection } from './sections/AiSection';
 import { PartnerSection } from './sections/PartnerSection';
@@ -19,6 +24,8 @@ const SECTIONS: { id: string; label: string; icon: LucideIcon; render: () => Rea
   { id: 'subjects', label: 'Subjects', icon: Tags, render: () => <SubjectsSection /> },
   { id: 'password', label: 'Password', icon: KeyRound, render: () => <PasswordSection /> },
   { id: 'appearance', label: 'Appearance', icon: Palette, render: () => <AppearanceSection /> },
+  { id: 'notifications', label: 'Notifications', icon: Bell, render: () => <NotificationsSection /> },
+  { id: 'privacy', label: 'Privacy', icon: Shield, render: () => <PrivacySection /> },
   { id: 'study', label: 'Study', icon: Timer, render: () => <StudySection /> },
   { id: 'nova', label: 'Nova', icon: Sparkles, render: () => <AiSection /> },
 ];
@@ -28,7 +35,13 @@ export default function SettingsPage() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const active = SECTIONS.find((s) => s.id === section);
-  const logout = async () => { await signOut(); navigate('/login', { replace: true }); };
+  const [loggingOut, setLoggingOut] = useState(false);
+  const logout = async () => {
+    setLoggingOut(true);
+    try { await signOut(); navigate('/login', { replace: true }); }
+    catch (error) { toast.error(friendlyMessage(error)); }
+    finally { setLoggingOut(false); }
+  };
 
   const list = (
     <nav aria-label="Settings sections" className="stagger flex flex-col gap-1 [--stagger-step:30ms]">
@@ -40,7 +53,7 @@ export default function SettingsPage() {
           <ChevronRight className="size-4 md:hidden" aria-hidden />
         </Link>
       ))}
-      <button onClick={logout} className="mt-2 flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-coral hover:bg-coral-soft">
+      <button onClick={logout} disabled={loggingOut} className="mt-2 flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-coral hover:bg-coral-soft disabled:opacity-50">
         <LogOut className="size-4" aria-hidden /> Log out
       </button>
     </nav>

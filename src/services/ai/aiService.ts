@@ -2,7 +2,7 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase';
 import { AI_ERROR_CODES, fail, type AIResult, type AiErrorCode, type AiTask } from './types';
 import type {
   Analysis, ExplainInput, FlashcardsInput, FlashcardsResult, PlanResult, PracticeInput, PracticeResult, QuizAnalysisInput,
-  QuizInput, QuizResult, RecommendationsInput, RecommendationsResult, SourceInput, StudyPlanInput, TextResult, TutorInput,
+  QuizInput, QuizResult, RecommendationsInput, RecommendationsResult, ScanAttachmentInput, SourceInput, StudyPlanInput, TextResult, TutorInput,
 } from './schemas';
 
 export interface AiClientDeps { fetchImpl: typeof fetch; baseUrl: string; anonKey: string; getToken: () => Promise<string | null> }
@@ -49,6 +49,7 @@ export function createAiClient(deps: AiClientDeps) {
     explainConcept: (i: ExplainInput, s?: AbortSignal) => call<TextResult>('explain', i, s),
     simplifyText: (i: SourceInput, s?: AbortSignal) => call<TextResult>('simplify', i, s),
     generateStudyGuide: (i: SourceInput, s?: AbortSignal) => call<TextResult>('study_guide', i, s),
+    scanAttachment: (i: ScanAttachmentInput, s?: AbortSignal) => call<TextResult>('scan_attachment', i, s),
     generateFlashcards: (i: FlashcardsInput, s?: AbortSignal) => call<FlashcardsResult>('flashcards', i, s),
     generateQuiz: (i: QuizInput, s?: AbortSignal) => call<QuizResult>('quiz', i, s),
     generatePracticeQuestions: (i: PracticeInput, s?: AbortSignal) => call<PracticeResult>('practice', i, s),
@@ -66,6 +67,6 @@ const client = createAiClient({
 });
 
 export const {
-  askTutor, generateSummary, explainConcept, simplifyText, generateStudyGuide, generateFlashcards, generateQuiz,
+  askTutor, generateSummary, explainConcept, simplifyText, generateStudyGuide, scanAttachment, generateFlashcards, generateQuiz,
   generatePracticeQuestions, generateStudyPlan, analyzeQuizResults, generateRecommendations,
 } = client;

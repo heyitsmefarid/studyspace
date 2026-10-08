@@ -4,6 +4,7 @@ import { format, parseISO, startOfDay, startOfMonth, startOfWeek, subDays, subMo
 import { formatDuration } from '@/lib/dates';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { QueryError } from '@/components/ui/QueryError';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Tabs } from '@/components/ui/Tabs';
@@ -57,6 +58,7 @@ export default function StatsPage() {
     subjects: subjects.data ?? [], attempts: attemptsIn, mastery: subjectMastery(decks.data ?? [], deckStats.data ?? new Map()),
   });
 
+  if (data.error) return <><PageHeader title="Stats" /><QueryError error={data.error} onRetry={data.refetch} retrying={data.isFetching} /></>;
   if (data.isPending || !profile) {
     return <div className="flex flex-col gap-4"><Skeleton className="h-10 w-40" /><Skeleton className="h-48" /><Skeleton className="h-72" /></div>;
   }

@@ -32,6 +32,9 @@ export function useTasksInRange(start: Date, end: Date) {
     occurrences: q.data ? expandOccurrences(q.data.tasks, start, end) : [],
     completions: q.data?.completions ?? new Set<string>(),
     isPending: q.isPending,
+    error: q.error,
+    isFetching: q.isFetching,
+    refetch: q.refetch,
   };
 }
 
