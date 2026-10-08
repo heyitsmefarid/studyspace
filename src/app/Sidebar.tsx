@@ -10,6 +10,7 @@ import { ProfileChip } from './ProfileChip';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { PartnerAvatar } from '@/features/realtime/PartnerAvatar';
 import { Bell } from '@/features/notifications/Bell';
+import { useUnread } from '@/features/notifications/api';
 
 const KEY = 'ss.sidebar';
 
@@ -19,6 +20,7 @@ function readCollapsed(): boolean {
 
 export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const { partner } = useAuth();
+  const { messages: unreadMessages } = useUnread();
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const toggle = () => {
     setCollapsed((c) => {
@@ -75,6 +77,7 @@ export function Sidebar({ onOpenPalette }: { onOpenPalette: () => void }) {
             {({ isActive }) => (<>
               <Icon className="size-5 shrink-0" aria-hidden />
               {!collapsed && <span className="flex-1">{label}</span>}
+              {!collapsed && to === '/chat' && unreadMessages > 0 && <Badge tone="coral">{unreadMessages > 9 ? '9+' : unreadMessages}</Badge>}
               {!collapsed && phase === 2 && <Badge>soon</Badge>}
               {!collapsed && isActive && <span aria-hidden className="size-1.5 animate-pop-in rounded-full bg-gold shadow-[0_0_8px_var(--gold)]" />}
             </>)}
