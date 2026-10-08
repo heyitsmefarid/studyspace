@@ -24,10 +24,11 @@ export function orbitReducer(o: Orbit | null, m: OrbitMessage, receivedAt: numbe
     case 'hello':
       return o;
     case 'start':
-      if (o && o.status !== 'ended' && o.id <= m.orbitId) return o;
+      if (o && !isOver(o, receivedAt) && o.id <= m.orbitId) return o;
       return { id: m.orbitId, by: m.by, durationMs: m.durationMs, ...anchored('running', m.remainingMs, receivedAt) };
     case 'sync':
-      if (o && o.status !== 'ended' && o.id < m.orbitId) return o;
+      // an over orbit (ended or timed out) never wins arbitration, and a sync that is already over never replaces a live one
+      if (o && !isOver(o, receivedAt) && (o.id < m.orbitId || m.status === 'ended' || (m.status === 'running' && m.remainingMs === 0))) return o;
       return { id: m.orbitId, by: m.by, durationMs: m.durationMs, ...anchored(m.status, m.remainingMs, receivedAt) };
     default: {
       if (!o || o.id !== m.orbitId || o.status === 'ended') return o;

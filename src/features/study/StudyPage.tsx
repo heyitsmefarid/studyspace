@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import { isOver } from '@/features/space/orbit';
 import { useOrbit } from '@/features/space/useOrbit';
 import { useOurRoom } from '@/features/realtime/RealtimeProvider';
 import { useStudySession } from './useStudySession';
@@ -12,7 +13,7 @@ import { SessionSummary } from './SessionSummary';
 import { toFinished, type FinishedStudy } from './finish';
 
 export default function StudyPage() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const { active, start, dispatch, count, clear } = useStudySession();
   const [lastChoices, setLastChoices] = useState<SetupChoices | undefined>();
   // Holds the summary after the store is cleared; before that it is derived from the finished timer (also after a reload).
@@ -24,12 +25,13 @@ export default function StudyPage() {
   const room = useOurRoom().data ?? null;
   // Joining (or starting) a shared orbit opens a session whose timer follows it.
   useEffect(() => {
-    if (!orbitParam || active || saved || !room || !orbit || orbit.id !== orbitParam || orbit.status === 'ended') return;
+    if (!orbitParam || active || saved || !room || !orbit || orbit.id !== orbitParam || isOver(orbit, Date.now())) return;
     start({
       config: { mode: 'custom', focusMin: 25, shortMin: 5, longMin: 15, longEvery: 4, customMin: Math.max(1, Math.ceil(orbit.durationMs / 60_000)) },
       subjectId: null, taskId: null, taskDate: null, content: null, roomId: room, orbitId: orbit.id,
     });
-  }, [orbitParam, active, saved, room, orbit, start]);
+    setParams({}, { replace: true }); // consumed: later renders must not start it again
+  }, [orbitParam, active, saved, room, orbit, start, setParams]);
 
   const finish = () => {
     if (!active) return;

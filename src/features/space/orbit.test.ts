@@ -29,6 +29,18 @@ describe('orbitReducer', () => {
     expect(onA.id).toBe('a-orbit');
     expect(onB.id).toBe('a-orbit');
   });
+  it('lets a start after a time-up orbit win regardless of id', () => {
+    const msg = (orbitId: string) => ({ type: 'start' as const, orbitId, by: 'ben', durationMs: 25 * MIN, remainingMs: 25 * MIN });
+    const timedUp = (id: string) => start(id, 0, MIN); // over from MIN onwards
+    expect(orbitReducer(timedUp('z-old'), msg('a-new'), 2 * MIN)!.id).toBe('a-new');
+    expect(orbitReducer(timedUp('a-old'), msg('z-new'), 2 * MIN)!.id).toBe('z-new');
+  });
+  it('does not let a stale sync for a time-up orbit replace a live one', () => {
+    const live = start('m', 0, 25 * MIN);
+    const stale = { type: 'sync' as const, orbitId: 'a', by: 'ben', durationMs: 25 * MIN, status: 'running' as const, remainingMs: 0 };
+    expect(orbitReducer(live, stale, MIN)).toBe(live);
+    expect(orbitReducer(live, { ...stale, status: 'ended' }, MIN)).toBe(live);
+  });
   it('lets a late joiner adopt the current state from a sync', () => {
     const synced = orbitReducer(null, { type: 'sync', orbitId: 'o1', by: 'ana', durationMs: 25 * MIN, status: 'paused', remainingMs: 7 * MIN }, 100)!;
     expect(synced).toMatchObject({ id: 'o1', status: 'paused', remainingMs: 7 * MIN });

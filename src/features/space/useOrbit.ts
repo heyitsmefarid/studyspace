@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useConnection, useRoomEvent, useSendRoomEvent } from '@/features/realtime/useRealtime';
-import { orbitReducer, orbitRemaining, parseOrbitMessage, toSync, type Orbit, type OrbitMessage } from './orbit';
+import { isOver, orbitReducer, orbitRemaining, parseOrbitMessage, toSync, type Orbit, type OrbitMessage } from './orbit';
 
 let current: Orbit | null = null;
 const listeners = new Set<() => void>();
@@ -40,7 +40,7 @@ export function useOrbitSync() {
     const m = parseOrbitMessage(payload);
     if (!m) return;
     if (m.type === 'hello') {
-      if (current && current.status !== 'ended') send('orbit', { ...toSync(current, Date.now()) });
+      if (current && !isOver(current, Date.now())) send('orbit', { ...toSync(current, Date.now()) });
       return;
     }
     set(orbitReducer(current, m, Date.now()));
