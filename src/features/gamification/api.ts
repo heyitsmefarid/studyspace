@@ -31,3 +31,21 @@ export function useTotalFocusSeconds(userId: string | undefined) {
       .reduce((s, r) => s + r.focus_seconds, 0),
   }).data ?? 0;
 }
+
+export function useAchievements(userId: string | undefined) {
+  const catalog = useQuery({
+    queryKey: ['achievements'],
+    staleTime: Infinity,
+    queryFn: async () => unwrap(await supabase.from('achievements').select('*').order('sort')),
+  });
+  const unlocked = useQuery({
+    queryKey: ['achievements', 'unlocked', userId],
+    enabled: Boolean(userId),
+    queryFn: async () => unwrap(await supabase.from('user_achievements').select('achievement_code, unlocked_at').eq('user_id', userId!)),
+  });
+  return {
+    all: catalog.data ?? [],
+    unlocked: new Map((unlocked.data ?? []).map((u) => [u.achievement_code, u.unlocked_at])),
+    isPending: catalog.isPending || (Boolean(userId) && unlocked.isPending),
+  };
+}

@@ -9,6 +9,8 @@ import { formatDuration } from '@/lib/dates';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { effectiveStreak, todayInZone } from '@/features/gamification/streak';
 import { useTotalFocusSeconds } from '@/features/gamification/api';
+import { AchievementsGrid } from '@/features/gamification/AchievementsGrid';
+import { GoalsList } from '@/features/goals/GoalsList';
 import { useSubjects } from '@/features/subjects/api';
 import { SubjectDot } from '@/features/subjects/SubjectDot';
 
@@ -58,6 +60,12 @@ export default function ProfilePage() {
             </span>
           ))}
         </div>
+      </Card>
+      <Card className="mt-4"><AchievementsGrid userId={p.id} /></Card>
+      <Card className="mt-4">
+        {isSelf
+          ? <GoalsList title="Goals" filter={(g) => g.owner_id === p.id} canCreate />
+          : <GoalsList title="Shared goals" filter={(g) => g.owner_id === p.id && g.is_shared} />}
       </Card>
     </div>
   );
