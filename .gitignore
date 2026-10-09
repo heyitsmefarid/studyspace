@@ -11,3 +11,5 @@ coverage
 supabase/.temp
 .shots
 supabase/.bundle
+
+.vercel
