@@ -22,6 +22,11 @@
   --coral-soft: rgb(178 59 48 / 0.10);
   --star-me: #2B6CB0;
   --star-partner: #B83A78;
+  /* Logo (decorative, not text): the S is the shared path of two stars. */
+  --logo-from: #7C5CFF;
+  --logo-to: #4B2FD6;
+  --logo-gold: #F5B83D;
+  --logo-blue: #2F8FE0;
   --sky-star: #1B2150;
   --chart-1: #5443C9;
   --chart-2: #008A73;
@@ -72,6 +77,10 @@
   --coral-soft: rgb(255 138 122 / 0.12);
   --star-me: #7CC4FF;
   --star-partner: #FF9ECF;
+  --logo-from: #B3A6FF;
+  --logo-to: #7C5CFF;
+  --logo-gold: #F5C76B;
+  --logo-blue: #7CC4FF;
   --sky-star: #FFFFFF;
   --chart-1: #8C7DFF;
   --chart-2: #1FA48B;
