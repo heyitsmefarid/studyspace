@@ -7,13 +7,14 @@ const OPTIONS: { value: ThemePref; label: string; hint: string; preview: [string
   { value: 'system', label: 'System', hint: 'Follow your device', preview: ['#0B1026', '#F6F3FB', '#A99CFF'] },
   { value: 'night', label: 'Night', hint: 'Deep indigo sky', preview: ['#0B1026', '#11173A', '#F5C76B'] },
   { value: 'daybreak', label: 'Daybreak', hint: 'Warm paper dawn', preview: ['#F6F3FB', '#FFFFFF', '#5443C9'] },
+  { value: 'sunset', label: 'Sunset', hint: 'Warm dusk glow', preview: ['#1C1220', '#24172A', '#FF9E7A'] },
 ];
 
 export function AppearanceSection() {
   const { preferences } = useAuth();
   const choose = useChooseTheme();
   return (
-    <div role="radiogroup" aria-label="Theme" className="grid gap-3 sm:grid-cols-3">
+    <div role="radiogroup" aria-label="Theme" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {OPTIONS.map((o) => (
         <button
           key={o.value}

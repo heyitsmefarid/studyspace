@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#0B1026"/>
-  <ellipse cx="32" cy="32" rx="25" ry="11" fill="none" stroke="#A99CFF" stroke-width="2.5" transform="rotate(-24 32 32)" opacity=".8"/>
-  <path d="M32 12c1.6 10.4 4.6 13.4 15 15-10.4 1.6-13.4 4.6-15 15-1.6-10.4-4.6-13.4-15-15 10.4-1.6 13.4-4.6 15-15z" fill="#F5C76B"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 8 72 84">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#4B2FD6"/></linearGradient></defs>
+  <path d="M68 30 C66 18 34 16 33 32 C32 46 67 50 67 66 C67 84 34 84 31 71" fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="30" cy="72" r="6.5" fill="#2F8FE0"/>
+  <path transform="translate(69 27)" d="M0 -12 C1.92 -1.92 1.92 -1.92 12 0 C1.92 1.92 1.92 1.92 0 12 C-1.92 1.92 -1.92 1.92 -12 0 C-1.92 -1.92 -1.92 -1.92 0 -12Z" fill="#F5B83D"/>
 </svg>

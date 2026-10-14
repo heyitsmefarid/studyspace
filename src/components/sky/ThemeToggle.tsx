@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { cn } from '@/lib/cn';
-import { oppositeTheme, useTheme } from '@/lib/theme';
+import { isDarkTheme, oppositeTheme, useTheme } from '@/lib/theme';
 import { originOf, useChooseTheme } from '@/features/auth/useChooseTheme';
 
 const RAYS = Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2);
@@ -10,7 +10,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const theme = useTheme();
   const choose = useChooseTheme();
   const maskId = `moon-bite-${useId().replace(/[^\w-]/g, '')}`;
-  const night = theme === 'night';
+  const night = isDarkTheme(theme);
   const label = night ? 'Switch to light theme' : 'Switch to dark theme';
   return (
     <button

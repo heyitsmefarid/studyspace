@@ -25,6 +25,11 @@
   --sky-star: #1B2150;
   --chart-1: #5443C9;
   --chart-2: #008A73;
+  --logo-from: #7C5CFF;
+  --logo-to: #4B2FD6;
+  --logo-dot: #2F8FE0;
+  --logo-star: #F5B83D;
+  --logo-word: #6A4BE8;
   --glow: 0 1px 0 0 rgb(27 33 80 / 0.04), 0 10px 30px -18px rgb(27 33 80 / 0.35);
   /* Auth sky (LivingSky): a dawn horizon. Hills stay pale so ink-muted text over them keeps 4.5:1. */
   --sky-top: #E8E2FA;
@@ -75,6 +80,11 @@
   --sky-star: #FFFFFF;
   --chart-1: #8C7DFF;
   --chart-2: #1FA48B;
+  --logo-from: #A592FF;
+  --logo-to: #7457FF;
+  --logo-dot: #4BA6F0;
+  --logo-star: #F5B83D;
+  --logo-word: #A99CFF;
   --glow: 0 0 0 1px rgb(232 236 255 / 0.06), 0 12px 40px -16px rgb(169 156 255 / 0.30);
   --sky-top: #060A1E;
   --sky-horizon: #1B2257;
@@ -85,6 +95,55 @@
   --sun-opacity: 0;
   --aurora-opacity: 0.75;
   --sky-dust-opacity: 1;
+  color-scheme: dark;
+}
+
+/* Sunset: a warm dusk. Plum sky, peach-coral light, amber stars; the auth sky keeps a setting sun on the horizon. */
+[data-theme="sunset"] {
+  --bg: #1C1220;
+  --bg-grad: #3A1C2C;
+  --surface: #24172A;
+  --surface-2: #2E1E33;
+  --raised: #33223A;
+  --line: rgb(255 228 214 / 0.09);
+  --line-strong: rgb(255 228 214 / 0.17);
+  --ink: #FFF1E8;
+  --ink-muted: #E2C5BC;
+  --ink-faint: #C4A49E;
+  --primary: #FF9E7A;
+  --primary-2: #FF8C70;
+  --primary-ink: #1C1220;
+  --primary-soft: rgb(255 158 122 / 0.14);
+  --gold: #FFC46B;
+  --gold-soft: rgb(255 196 107 / 0.14);
+  --teal: #6FD6C0;
+  --teal-soft: rgb(111 214 192 / 0.12);
+  --coral: #FF8A9A;
+  --coral-soft: rgb(255 138 154 / 0.12);
+  --star-me: #8CC8FF;
+  --star-partner: #FFA8D2;
+  --sky-star: #FFE9DC;
+  --chart-1: #FF9E7A;
+  --chart-2: #2FA88F;
+  --logo-from: #A592FF;
+  --logo-to: #7457FF;
+  --logo-dot: #4BA6F0;
+  --logo-star: #F5B83D;
+  --logo-word: #A99CFF;
+  --glow: 0 0 0 1px rgb(255 228 214 / 0.06), 0 12px 40px -16px rgb(255 140 100 / 0.30);
+  --sky-top: #2A1533;
+  --sky-horizon: #B8525A;
+  --hill-far: #3A1D33;
+  --hill-near: #1C1220;
+  --sky-link: #FFC46B;
+  --sky-twinkle: #FFE9DC;
+  --sun-core: #FFD9A8;
+  --sun-glow: rgb(255 120 80 / 0.55);
+  --aurora-1: rgb(255 140 120 / 0.35);
+  --aurora-2: rgb(196 120 220 / 0.35);
+  --sun-opacity: 1;
+  --aurora-opacity: 0.4;
+  --sky-dust-opacity: 0.7;
   color-scheme: dark;
 }
 

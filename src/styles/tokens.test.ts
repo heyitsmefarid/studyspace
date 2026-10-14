@@ -24,6 +24,7 @@ const SURFACES = ['bg', 'surface', 'surface-2'];
 describe.each([
   ['daybreak', ':root'],
   ['night', '[data-theme="night"]'],
+  ['sunset', '[data-theme="sunset"]'],
 ])('%s tokens', (_name, selector) => {
   const t = block(selector);
   it.each(TEXT.flatMap((fg) => SURFACES.map((bg) => [fg, bg])))('%s on %s ≥ 4.5:1', (fg, bg) => {
@@ -38,6 +39,7 @@ describe.each([
 describe.each([
   ['daybreak', ':root'],
   ['night', '[data-theme="night"]'],
+  ['sunset', '[data-theme="sunset"]'],
 ])('%s chart tokens', (_name, selector) => {
   const t = block(selector);
   it.each(['chart-1', 'chart-2'].flatMap((fg) => ['surface', 'surface-2'].map((bg) => [fg, bg])))('%s on %s ≥ 3:1', (fg, bg) => {
@@ -50,6 +52,7 @@ describe.each([
 describe.each([
   ['daybreak', ':root'],
   ['night', '[data-theme="night"]'],
+  ['sunset', '[data-theme="sunset"]'],
 ])('%s gradient tokens', (_name, selector) => {
   const t = block(selector);
   it.each(['primary', 'primary-2'])('primary-ink on %s ≥ 4.5:1', (bg) => {

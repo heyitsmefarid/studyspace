@@ -28,7 +28,7 @@ const Privacy = z.object({
 });
 
 export const PreferencesSchema = z.object({
-  theme: z.enum(['system', 'night', 'daybreak']).default('system').catch('system'),
+  theme: z.enum(['system', 'night', 'daybreak', 'sunset']).default('system').catch('system'),
   study: Study.prefault({}).catch(() => Study.parse({})),
   ai: Ai.prefault({}).catch(() => Ai.parse({})),
   notifications: Notifications.prefault({}).catch(() => Notifications.parse({})),

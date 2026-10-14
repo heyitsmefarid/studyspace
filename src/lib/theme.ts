@@ -1,8 +1,15 @@
 import { useSyncExternalStore } from 'react';
 import { prefersReducedMotion } from './motion';
 
-export type ThemePref = 'system' | 'night' | 'daybreak';
-export type Theme = 'night' | 'daybreak';
+export type ThemePref = 'system' | 'night' | 'daybreak' | 'sunset';
+export type Theme = 'night' | 'daybreak' | 'sunset';
+
+const THEMES: readonly Theme[] = ['night', 'daybreak', 'sunset'];
+/** Browser chrome colour (meta theme-color) per theme: each theme's page background. */
+const CHROME: Record<Theme, string> = { night: '#0B1026', daybreak: '#F6F3FB', sunset: '#1C1220' };
+
+/** Night and Sunset are dark themes; Daybreak is the light one. */
+export const isDarkTheme = (theme: Theme): boolean => theme !== 'daybreak';
 
 const KEY = 'ss.theme';
 const DARK = '(prefers-color-scheme: dark)';
@@ -13,7 +20,8 @@ export function resolveTheme(pref: ThemePref, prefersDark: boolean): Theme {
   return pref;
 }
 
-const isPref = (v: unknown): v is ThemePref => v === 'system' || v === 'night' || v === 'daybreak';
+const isTheme = (v: unknown): v is Theme => (THEMES as readonly unknown[]).includes(v);
+const isPref = (v: unknown): v is ThemePref => v === 'system' || isTheme(v);
 
 export function readThemePref(win: Window = window): ThemePref {
   try {
@@ -24,8 +32,9 @@ export function readThemePref(win: Window = window): ThemePref {
   }
 }
 
+/** The quick toggle flips light and dark: Daybreak goes to Night, and either dark theme goes to Daybreak. */
 export function oppositeTheme(theme: Theme): Theme {
-  return theme === 'night' ? 'daybreak' : 'night';
+  return isDarkTheme(theme) ? 'daybreak' : 'night';
 }
 
 /** Subscribers hear every applyTheme, so toggles, Settings and the palette stay in sync. */
@@ -37,7 +46,7 @@ export function subscribeTheme(cb: () => void): () => void {
 export function applyTheme(pref: ThemePref, win: Window = window): Theme {
   const theme = resolveTheme(pref, win.matchMedia(DARK).matches);
   win.document.documentElement.dataset.theme = theme;
-  win.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#0B1026' : '#F6F3FB');
+  win.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CHROME[theme]);
   try { win.localStorage.setItem(KEY, JSON.stringify(pref)); } catch { /* storage unavailable */ }
   listeners.forEach((cb) => cb());
   return theme;
@@ -88,7 +97,10 @@ export function accountTheme(rawPreferences: unknown, local: ThemePref): { pref:
   return { pref: local, adopt: local !== 'system' };
 }
 
-const currentTheme = (): Theme => (document.documentElement.dataset.theme === 'night' ? 'night' : 'daybreak');
+const currentTheme = (): Theme => {
+  const t = document.documentElement.dataset.theme;
+  return isTheme(t) ? t : 'daybreak';
+};
 
 /** The theme on screen right now, live. */
 export function useTheme(): Theme {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { accountTheme, applyTheme, oppositeTheme, readThemePref, resolveTheme, subscribeTheme, switchTheme, watchSystemTheme, type ThemePref } from './theme';
+import { accountTheme, applyTheme, isDarkTheme, oppositeTheme, readThemePref, resolveTheme, subscribeTheme, switchTheme, watchSystemTheme, type ThemePref } from './theme';
 
 describe('resolveTheme', () => {
   it('follows the OS for system', () => {
@@ -9,6 +9,7 @@ describe('resolveTheme', () => {
   it('honours explicit choices', () => {
     expect(resolveTheme('night', false)).toBe('night');
     expect(resolveTheme('daybreak', true)).toBe('daybreak');
+    expect(resolveTheme('sunset', false)).toBe('sunset');
   });
 });
 
@@ -66,6 +67,11 @@ describe('oppositeTheme', () => {
   it('flips night and daybreak', () => {
     expect(oppositeTheme('night')).toBe('daybreak');
     expect(oppositeTheme('daybreak')).toBe('night');
+  });
+  it('sends Sunset, a dark theme, to Daybreak', () => {
+    expect(isDarkTheme('sunset')).toBe(true);
+    expect(isDarkTheme('daybreak')).toBe(false);
+    expect(oppositeTheme('sunset')).toBe('daybreak');
   });
 });
 
@@ -135,6 +141,13 @@ describe('switchTheme', () => {
 });
 
 describe('accountTheme', () => {
+  it('recognises Sunset, saved on the account or on this device', () => {
+    expect(accountTheme({ theme: 'sunset' }, 'system')).toEqual({ pref: 'sunset', adopt: false });
+    const { win, root } = fakeWindow({ stored: 'sunset' });
+    expect(readThemePref(win)).toBe('sunset');
+    expect(applyTheme('sunset', win)).toBe('sunset');
+    expect(root.dataset.theme).toBe('sunset');
+  });
   it('uses the theme saved on the account', () => {
     expect(accountTheme({ theme: 'daybreak' }, 'night')).toEqual({ pref: 'daybreak', adopt: false });
     expect(accountTheme({ theme: 'system' }, 'night')).toEqual({ pref: 'system', adopt: false });

@@ -9,7 +9,7 @@ import { PALETTE_SOURCES, type PaletteSource } from './paletteSources';
 
 const itemClass = 'flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-ink transition-[background-color,translate] duration-150 data-[selected=true]:translate-x-0.5 data-[selected=true]:bg-surface-2';
 const groupClass = '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-ink-faint';
-const NEXT_THEME: Record<ThemePref, ThemePref> = { system: 'night', night: 'daybreak', daybreak: 'system' };
+const NEXT_THEME: Record<ThemePref, ThemePref> = { system: 'night', night: 'sunset', sunset: 'daybreak', daybreak: 'system' };
 
 function SourceGroup({ source, query, go }: { source: PaletteSource; query: string; go: (to: string) => void }) {
   const items = source.useItems(query);

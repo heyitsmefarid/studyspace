@@ -15,4 +15,8 @@ describe('readPreferences', () => {
     expect(p.study.shortMin).toBe(5);
     expect(p.ai.difficulty).toBe('intermediate');
   });
+  it('accepts the Sunset theme', () => {
+    expect(readPreferences({ theme: 'sunset' }).theme).toBe('sunset');
+    expect(readPreferences({ theme: 'aurora' }).theme).toBe('system');
+  });
 });

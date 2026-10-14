@@ -65,7 +65,7 @@ export function AuthLayout({ children, progress = 0, celebrate = false, stumble 
       <div className="relative h-56 lg:hidden"><LivingSky {...sky} compact /></div>
       <div className="relative z-10 -mt-12 grid place-items-center px-4 pb-10 lg:mt-0 lg:py-10">
         <Card className="w-full max-w-sm animate-rise-in bg-surface/80 backdrop-blur-xl">
-          <Logo className="logo-orbit-slow" />
+          <Logo />
           {children}
         </Card>
       </div>
